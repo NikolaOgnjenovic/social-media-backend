@@ -4,9 +4,10 @@ import models.Image
 import play.api.libs.json.{Json, Reads}
 import scala.language.implicitConversions
 
-case class NewImage(title: String)
+case class NewImage(authorId: Long, tags: String, title: String)
 
 object NewImage {
   implicit val jsonReader: Reads[NewImage] = Json.reads[NewImage]
-  implicit def toModel(newImage: NewImage): Image = Image(0, newImage.title)
+  implicit def toModel(newImage: NewImage): Image =
+    Image(0, newImage.authorId, newImage.tags, newImage.title)
 }

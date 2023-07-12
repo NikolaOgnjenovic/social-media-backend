@@ -41,20 +41,35 @@ class ImageRepository @Inject() (
       }
   }
 
+  // This is a temporary work-around
   def update(id: Long, image: Image): Future[Option[Image]] = {
-    db.run(images.filter(_.id === id).update(image).map {
-      case 0       => None
-      case 1       => Some(image)
-      case updated => throw new RuntimeException(s"Updated $updated rows")
-    })
+    delete(id)
+    insert(image)
+  }
+
+  def update_old(id: Long, image: Image): Future[Option[Image]] = {
+    // TODO: find a way to update a row which has an auto-generated identity always column
+    db.run(
+      images
+        .filter(_.id === id)
+        .update(image.copy(tags = image.tags, title = image.title))
+        .map {
+          case 0       => None
+          case 1       => Some(image)
+          case updated => throw new RuntimeException(s"Updated $updated rows")
+        }
+    )
   }
 
   private class ImageTable(tag: Tag) extends Table[Image](tag, "images") {
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
+    def authorId = column[Long]("author_id")
+    def tags = column[String]("tags") // csv
 
     def title = column[String]("title")
 
     // Maps table data to the case class
-    override def * = (id, title) <> ((Image.apply _).tupled, Image.unapply)
+    override def * =
+      (id, authorId, tags, title) <> ((Image.apply _).tupled, Image.unapply)
   }
 }

@@ -65,6 +65,72 @@ DELETE  /api/v1/images/:id        controllers.ImageController.delete(id: Long)
 ###
 PUT     /api/v1/images/:id        controllers.ImageController.update(id: Long)
 
+###
+#   responses:
+#     200:
+#       schema:
+#         $ref: '#/definitions/models.Folder'
+###
+GET     /api/v1/folders            controllers.FolderController.getAll
+
+###
+#   responses:
+#     200:
+#       schema:
+#         $ref: '#/definitions/models.Folder'
+#     404:
+#       description: Folder with specified ID was not found
+###
+GET     /api/v1/folders/:id        controllers.FolderController.getById(id: Long)
+
+###
+#   responses:
+#     200:
+#       schema:
+#         $ref: '#/definitions/models.Folder'
+#     404:
+#       description: Folder with specified author ID was not found
+###
+GET     /api/v1/folders/author/:authorId        controllers.FolderController.getByAuthorId(authorId: Long)
+
+###
+#   requestBody:
+#     content:
+#       application/json:
+#         schema:
+#           type: object
+#           $ref: "#/definitions/dtos.NewFolder"
+#   responses:
+#     200:
+#       schema:
+#         $ref: '#/definitions/models.Folder'
+###
+POST    /api/v1/folders            controllers.FolderController.create
+
+
+###
+#   responses:
+#     204:
+#       description: Folder with specified id has been deleted
+#     404:
+#       description: Folder with specified ID was not found
+###
+DELETE  /api/v1/folders/:id        controllers.FolderController.delete(id: Long)
+
+###
+#   requestBody:
+#     content:
+#       application/json:
+#         schema:
+#           type: object
+#           $ref: "#/definitions/models.Folder"
+#   responses:
+#     200:
+#       schema:
+#         $ref: '#/definitions/models.Folder'
+###
+PUT     /api/v1/folders/:id        controllers.FolderController.update(id: Long)
+
 # Map static resources from the /public folder to the /assets URL path
 ### NoDocs ###
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
