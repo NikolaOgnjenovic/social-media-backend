@@ -33,7 +33,7 @@ GET     /api/v1/images/:id        controllers.ImageController.getById(id: Long)
 #       schema:
 #         $ref: '#/definitions/models.Image'
 ###
-GET     /api/v1/images/tag/:tag        controllers.ImageController.getByTag(tag: String)
+GET     /api/v1/images/tags/:tags       controllers.ImageController.getByTags(tags: String)
 
 ###
 #   responses:

@@ -36,8 +36,9 @@ class ImageController @Inject() (
     }
   }
 
-  def getByTag(tag: String): Action[AnyContent] = Action.async {
-    imageService.getByTag(tag).map(images => Ok(Json.toJson(images)))
+  def getByTags(tags: String): Action[AnyContent] = Action.async {
+    val tagList = tags.split(",").toList
+    imageService.getByTags(tagList).map(images => Ok(Json.toJson(images)))
   }
 
   def getByTitle(title: String): Action[AnyContent] = Action.async {

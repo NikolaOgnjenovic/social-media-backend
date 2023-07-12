@@ -3,7 +3,7 @@ import play.api.libs.json.{Json, OFormat}
 case class Image(
     id: Long,
     authorId: Long,
-    tags: String,
+    tags: List[String],
     title: String,
     likes: Int
 )

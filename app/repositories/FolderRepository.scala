@@ -7,6 +7,7 @@ import slick.jdbc.JdbcProfile
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import db.MyPostgresProfile.api._
 
 class FolderRepository @Inject() (
     override protected val dbConfigProvider: DatabaseConfigProvider
@@ -47,7 +48,6 @@ class FolderRepository @Inject() (
   }
 
   def update(id: Long, folder: Folder): Future[Option[Folder]] = {
-    // TODO: find a way to update a row which has an auto-generated identity always column
     db.run(
       folders
         .filter(folder => folder.id === id)
@@ -58,11 +58,10 @@ class FolderRepository @Inject() (
             title = folder.title
           )
         )
-        //.update(folder.copy(imageIds = folder.imageIds, title = folder.title))
         .map {
-          case 0 => None
-          case 1 => Some(folder)
-          //case updated => throw new RuntimeException(s"Updated $updated rows")
+          case 0       => None
+          case 1       => Some(folder)
+          case updated => throw new RuntimeException(s"Updated $updated rows")
         }
     )
   }
@@ -71,7 +70,7 @@ class FolderRepository @Inject() (
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
     def authorId = column[Long]("author_id")
-    def imageIds = column[String]("image_ids") // csv
+    def imageIds = column[List[String]]("image_ids") // csv
     def title = column[String]("title")
 
     // Maps table data to the case class

@@ -22,6 +22,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-slick" % "5.1.0",
   "com.typesafe.play" %% "play-slick-evolutions" % "5.1.0",
   "org.postgresql" % "postgresql" % "42.5.4",
+  "com.github.tminglei" %% "slick-pg" % "0.21.1",
   // Swagger
   "org.webjars" % "swagger-ui" % "4.18.1",
   // Test

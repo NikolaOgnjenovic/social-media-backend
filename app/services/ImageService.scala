@@ -14,8 +14,8 @@ class ImageService @Inject() (imageRepository: ImageRepository) {
 
   def getById(id: Long): Future[Option[Image]] = imageRepository.getById(id)
 
-  def getByTag(tag: String): Future[Seq[Image]] =
-    imageRepository.getByTag(tag)
+  def getByTags(tags: List[String]): Future[Seq[Image]] =
+    imageRepository.getByTags(tags)
 
   def getByTitle(title: String): Future[Seq[Image]] =
     imageRepository.getByTitle(title)

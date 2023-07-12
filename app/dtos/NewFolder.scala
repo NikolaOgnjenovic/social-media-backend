@@ -4,7 +4,7 @@ import models.Folder
 import play.api.libs.json.{Json, Reads}
 import scala.language.implicitConversions
 
-case class NewFolder(authorId: Long, imageIds: String, title: String)
+case class NewFolder(authorId: Long, imageIds: List[String], title: String)
 
 object NewFolder {
   implicit val jsonReader: Reads[NewFolder] = Json.reads[NewFolder]

@@ -7,6 +7,7 @@ import slick.jdbc.JdbcProfile
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import db.MyPostgresProfile.api._
 
 class ImageRepository @Inject() (
     override protected val dbConfigProvider: DatabaseConfigProvider
@@ -33,8 +34,8 @@ class ImageRepository @Inject() (
     db.run(images.filter(_.id === id).result).map(_.headOption)
   }
 
-  def getByTag(tag: String): Future[Seq[Image]] = {
-    db.run(images.filter(_.tags.like("%" + tag + "%")).result)
+  def getByTags(tags: List[String]): Future[Seq[Image]] = {
+    db.run(images.filter(_.tags @> tags.bind).result)
   }
 
   def getByTitle(title: String): Future[Seq[Image]] = {
@@ -67,7 +68,7 @@ class ImageRepository @Inject() (
   private class ImageTable(tag: Tag) extends Table[Image](tag, "images") {
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
     def authorId = column[Long]("author_id")
-    def tags = column[String]("tags") // csv
+    def tags = column[List[String]]("tags")
 
     def title = column[String]("title")
     def likes = column[Int]("likes")
