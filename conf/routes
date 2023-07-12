@@ -8,3 +8,63 @@ GET     /                           controllers.HomeController.index()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+
+###
+#   responses:
+#     200:
+#       schema:
+#         $ref: '#/definitions/models.Image'
+###
+GET     /api/v1/images            controllers.ImageController.getAll
+
+###
+#   responses:
+#     200:
+#       schema:
+#         $ref: '#/definitions/models.Image'
+#     404:
+#       description: Image with specified ID was not found
+###
+GET     /api/v1/images/:id        controllers.ImageController.getById(id: Long)
+
+###
+#   requestBody:
+#     content:
+#       application/json:
+#         schema:
+#           type: object
+#           $ref: "#/definitions/dtos.NewImage"
+#   responses:
+#     200:
+#       schema:
+#         $ref: '#/definitions/models.Image'
+###
+POST    /api/v1/images            controllers.ImageController.create
+
+
+###
+#   responses:
+#     204:
+#       description: Image with specified id has been deleted
+#     404:
+#       description: Image with specified ID was not found
+###
+DELETE  /api/v1/images/:id        controllers.ImageController.delete(id: Long)
+
+###
+#   requestBody:
+#     content:
+#       application/json:
+#         schema:
+#           type: object
+#           $ref: "#/definitions/models.Image"
+#   responses:
+#     200:
+#       schema:
+#         $ref: '#/definitions/models.Image'
+###
+PUT     /api/v1/images/:id        controllers.ImageController.update(id: Long)
+
+# Map static resources from the /public folder to the /assets URL path
+### NoDocs ###
+GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
