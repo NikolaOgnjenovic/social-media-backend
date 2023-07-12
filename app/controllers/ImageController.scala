@@ -36,6 +36,14 @@ class ImageController @Inject() (
     }
   }
 
+  def getByTag(tag: String): Action[AnyContent] = Action.async {
+    imageService.getByTag(tag).map(images => Ok(Json.toJson(images)))
+  }
+
+  def getByTitle(title: String): Action[AnyContent] = Action.async {
+    imageService.getByTitle(title).map(images => Ok(Json.toJson(images)))
+  }
+
   def update(id: Long): Action[Image] = Action.async(parse.json[Image]) {
     request =>
       if (id != request.body.id)

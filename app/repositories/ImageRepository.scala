@@ -16,6 +16,8 @@ class ImageRepository @Inject() (
 
   private val images = TableQuery[ImageTable]
 
+  db.run(images.schema.createIfNotExists)
+
   def insert(image: Image): Future[Option[Image]] =
     db.run((images returning images) += image)
       .map(Some.apply[Image])
@@ -31,6 +33,14 @@ class ImageRepository @Inject() (
     db.run(images.filter(_.id === id).result).map(_.headOption)
   }
 
+  def getByTag(tag: String): Future[Seq[Image]] = {
+    db.run(images.filter(_.tags.like("%" + tag + "%")).result)
+  }
+
+  def getByTitle(title: String): Future[Seq[Image]] = {
+    db.run(images.filter(_.title.like("%" + title + "%")).result)
+  }
+
   def delete(id: Long): Future[Option[Int]] = {
     //
     db.run(images.filter(_.id === id).delete)
@@ -41,14 +51,7 @@ class ImageRepository @Inject() (
       }
   }
 
-  // This is a temporary work-around
   def update(id: Long, image: Image): Future[Option[Image]] = {
-    delete(id)
-    insert(image)
-  }
-
-  def update_old(id: Long, image: Image): Future[Option[Image]] = {
-    // TODO: find a way to update a row which has an auto-generated identity always column
     db.run(
       images
         .filter(_.id === id)
@@ -67,9 +70,16 @@ class ImageRepository @Inject() (
     def tags = column[String]("tags") // csv
 
     def title = column[String]("title")
+    def likes = column[Int]("likes")
 
     // Maps table data to the case class
     override def * =
-      (id, authorId, tags, title) <> ((Image.apply _).tupled, Image.unapply)
+      (
+        id,
+        authorId,
+        tags,
+        title,
+        likes
+      ) <> ((Image.apply _).tupled, Image.unapply)
   }
 }

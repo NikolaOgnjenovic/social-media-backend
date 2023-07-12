@@ -9,5 +9,5 @@ case class NewImage(authorId: Long, tags: String, title: String)
 object NewImage {
   implicit val jsonReader: Reads[NewImage] = Json.reads[NewImage]
   implicit def toModel(newImage: NewImage): Image =
-    Image(0, newImage.authorId, newImage.tags, newImage.title)
+    Image(0, newImage.authorId, newImage.tags, newImage.title, 0)
 }

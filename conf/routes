@@ -28,6 +28,22 @@ GET     /api/v1/images            controllers.ImageController.getAll
 GET     /api/v1/images/:id        controllers.ImageController.getById(id: Long)
 
 ###
+#   responses:
+#     200:
+#       schema:
+#         $ref: '#/definitions/models.Image'
+###
+GET     /api/v1/images/tag/:tag        controllers.ImageController.getByTag(tag: String)
+
+###
+#   responses:
+#     200:
+#       schema:
+#         $ref: '#/definitions/models.Image'
+###
+GET     /api/v1/images/title/:title        controllers.ImageController.getByTitle(title: String)
+
+###
 #   requestBody:
 #     content:
 #       application/json:

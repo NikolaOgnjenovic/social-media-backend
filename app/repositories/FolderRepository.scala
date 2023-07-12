@@ -16,6 +16,8 @@ class FolderRepository @Inject() (
 
   private val folders = TableQuery[FolderTable]
 
+  db.run(folders.schema.createIfNotExists)
+
   def insert(folder: Folder): Future[Option[Folder]] =
     db.run((folders returning folders) += folder)
       .map(Some.apply[Folder])
@@ -44,12 +46,7 @@ class FolderRepository @Inject() (
       }
   }
 
-  // This is a temporary work-around
   def update(id: Long, folder: Folder): Future[Option[Folder]] = {
-    delete(id)
-    insert(folder)
-  }
-  def update_old(id: Long, folder: Folder): Future[Option[Folder]] = {
     // TODO: find a way to update a row which has an auto-generated identity always column
     db.run(
       folders
