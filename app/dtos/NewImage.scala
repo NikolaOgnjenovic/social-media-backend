@@ -7,7 +7,8 @@ import scala.language.implicitConversions
 case class NewImage(
     authorId: Long,
     tags: List[String],
-    title: String
+    title: String,
+    imagePath: String
 )
 
 object NewImage {
@@ -24,6 +25,6 @@ object NewImage {
         newImage.authorId
       ),
       -1, // folder id,
-      "" // image path
+      newImage.imagePath // image path
     )
 }

@@ -63,7 +63,7 @@ PATCH     /api/v1/images/:id/tags        controllers.ImageController.updateTags(
 PATCH     /api/v1/images/:id/likes       controllers.ImageController.updateLikes(id: Long)
 PATCH     /api/v1/images/:id/editorIds        controllers.ImageController.updateEditorIds(id: Long)
 PATCH     /api/v1/images/:id/folderId        controllers.ImageController.updateFolderId(id: Long)
-PATCH     /api/v1/images/:id/imagePath        controllers.ImageController.updateImagePath(id: Long)
+# PATCH     /api/v1/images/:id/imagePath        controllers.ImageController.updateImagePath(id: Long)
 
 ###
 #   responses:

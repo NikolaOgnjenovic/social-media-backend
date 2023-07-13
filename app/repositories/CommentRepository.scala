@@ -18,8 +18,6 @@ class CommentRepository @Inject() (
   // TODO: create on startup??
   db.run(comments.schema.createIfNotExists)
 
-  def createTable(): Future[Unit] = db.run(comments.schema.createIfNotExists)
-
   def insert(comment: Comment): Future[Option[Comment]] =
     db.run((comments returning comments) += comment)
       .map(Some.apply[Comment])

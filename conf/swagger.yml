@@ -1,0 +1,11 @@
+
+requestBody:
+ content:
+   application/json:
+     schema:
+       type: object
+       $ref: "#/definitions/dtos.NewImage"
+responses:
+ 200:
+   schema:
+     $ref: '#/definitions/models.Image'

@@ -24,18 +24,37 @@ class ImageController @Inject() (
     imageService: ImageService
 )(implicit ec: ExecutionContext)
     extends BaseController {
-  // TODO: Group create & upload into a single request.
-  //  Problem: Adding a File to the NewImage crashes because it requires an
-  //  implicit val fileReader: Reads[File] = Json.reads[File] but File has no unapply function
-  def create: Action[NewImage] =
-    Action.async(parse.json[NewImage]) { request =>
-      val imageToAdd: Image = request.body
+  def create: Action[MultipartFormData[Files.TemporaryFile]] = {
+    Action(parse.multipartFormData) { request =>
+      request.body.dataParts("authorId")
+      request.body
+        .file("picture")
+        .map { picture =>
+          // Upload the picture
+          val filename = Paths.get(picture.filename).getFileName
+          picture.ref.copyTo(
+            Paths.get(s"public/images/$filename"),
+            replace = true
+          )
 
-      imageService.create(imageToAdd).map {
-        case Some(image) => Created(Json.toJson(image))
-        case None        => Conflict
-      }
+          // Add the image to the database
+          val imageToAdd: Image = new NewImage(
+            request.body.dataParts.get("authorId").head.head.toLong,
+            request.body.dataParts.get("tags").head.toList,
+            request.body.dataParts.get("title").head.head,
+            s"public/images/$filename"
+          )
+          imageService.create(imageToAdd).map {
+            case Some(image) => Created(Json.toJson(image))
+            case None        => Conflict
+          }
+        }
+        .getOrElse(
+          Redirect(routes.HomeController.index())
+        )
+      Ok("Image created")
     }
+  }
 
   def getAll: Action[AnyContent] = Action.async {
     imageService.getAll.map(images => Ok(Json.toJson(images)))
@@ -92,28 +111,6 @@ class ImageController @Inject() (
         case None           => NotFound
       }
     }
-
-  def updateImagePath(
-      id: Long
-  ): Action[MultipartFormData[Files.TemporaryFile]] = {
-    Action(parse.multipartFormData) { request =>
-      request.body
-        .file("picture")
-        .map { picture =>
-          val filename = Paths.get(picture.filename).getFileName
-          picture.ref.copyTo(
-            Paths.get(s"public/images/$filename"),
-            replace = true
-          )
-          imageService.updateImagePath(id, s"public/images/$filename")
-          // TODO: update image path with given id
-          Ok("File uploaded")
-        }
-        .getOrElse(
-          Redirect(routes.HomeController.index())
-        )
-    }
-  }
 
   def delete(id: Long): Action[AnyContent] = Action.async {
     imageService.delete(id).map {

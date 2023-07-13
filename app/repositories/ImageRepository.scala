@@ -18,7 +18,6 @@ class ImageRepository @Inject() (
   private val images = TableQuery[ImageTable]
 
   db.run(images.schema.createIfNotExists)
-  def createTable(): Future[Unit] = db.run(images.schema.createIfNotExists)
 
   def insert(image: Image): Future[Option[Image]] =
     db.run((images returning images) += image)
@@ -110,20 +109,6 @@ class ImageRepository @Inject() (
         .map {
           case 0       => None
           case 1       => Some(folderId)
-          case updated => throw new RuntimeException(s"Updated $updated rows")
-        }
-    )
-  }
-
-  def updateImagePath(id: Long, imagePath: String): Future[Option[String]] = {
-    db.run(
-      images
-        .filter(image => image.id === id)
-        .map(_.imagePath)
-        .update(imagePath)
-        .map {
-          case 0       => None
-          case 1       => Some(imagePath)
           case updated => throw new RuntimeException(s"Updated $updated rows")
         }
     )

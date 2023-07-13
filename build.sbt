@@ -2,12 +2,10 @@ name := """play-scala-seed"""
 organization := "Nikola"
 
 version := "1.0-SNAPSHOT"
-
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayScala, SwaggerPlugin)
 
 scalaVersion := "2.13.11"
-
-// TODO: Add play-swagger plugin
+swaggerDomainNameSpaces := Seq("models")
 //libraryDependencies += guice
 //libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test
 
@@ -16,7 +14,6 @@ scalaVersion := "2.13.11"
 
 // Adds additional packages into conf/routes
 // play.sbt.routes.RoutesKeys.routesImport += "Nikola.binders._"
-
 libraryDependencies ++= Seq(
   guice,
   // Database

@@ -4,9 +4,8 @@ import dtos.NewFolder
 import models.Folder
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
-
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import services.FolderService
 
 @Singleton
