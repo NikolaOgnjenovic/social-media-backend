@@ -19,8 +19,20 @@ class ImageService @Inject() (imageRepository: ImageRepository) {
 
   def getByTitle(title: String): Future[Seq[Image]] =
     imageRepository.getByTitle(title)
-  def update(id: Long, image: Image): Future[Option[Image]] =
-    imageRepository.update(id, image)
 
+  def getByFolderId(folderId: Long): Future[Seq[Image]] =
+    imageRepository.getByFolderId(folderId)
+
+  def updateTags(id: Long, tags: List[String]): Future[Option[List[String]]] =
+    imageRepository.updateTags(id, tags)
+  def updateLikes(id: Long, likes: Int): Future[Option[Int]] =
+    imageRepository.updateLikes(id, likes)
+  def updateEditorIds(
+      id: Long,
+      editorIds: List[Long]
+  ): Future[Option[List[Long]]] =
+    imageRepository.updateEditorIds(id, editorIds)
+  def updateFolderId(id: Long, folderId: Long): Future[Option[Long]] =
+    imageRepository.updateFolderId(id, folderId)
   def delete(id: Long): Future[Option[Int]] = imageRepository.delete(id)
 }

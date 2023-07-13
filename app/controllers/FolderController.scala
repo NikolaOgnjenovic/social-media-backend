@@ -43,16 +43,14 @@ class FolderController @Inject() (
     }
   }
 
-  def update(id: Long): Action[Folder] = Action.async(parse.json[Folder]) {
+  def updateTitle(id: Long): Action[String] = Action.async(parse.json[String]) {
     request =>
-      if (id != request.body.id)
-        Future.successful(BadRequest("ID in path must be equal to id in body"))
-      else
-        folderService.update(id, request.body).map {
-          case Some(folder) => Ok(Json.toJson(folder))
-          case None         => NotFound
-        }
+      folderService.updateTitle(id, request.body).map {
+        case Some(title) => Ok(Json.toJson(title))
+        case None        => NotFound
+      }
   }
+
   def delete(id: Long): Action[AnyContent] = Action.async {
     folderService.delete(id).map {
       case Some(_) => NoContent

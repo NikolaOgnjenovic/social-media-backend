@@ -45,16 +45,41 @@ class ImageController @Inject() (
     imageService.getByTitle(title).map(images => Ok(Json.toJson(images)))
   }
 
-  def update(id: Long): Action[Image] = Action.async(parse.json[Image]) {
-    request =>
-      if (id != request.body.id)
-        Future.successful(BadRequest("ID in path must be equal to id in body"))
-      else
-        imageService.update(id, request.body).map {
-          case Some(image) => Ok(Json.toJson(image))
-          case None        => NotFound
-        }
+  def getByFolderId(folderId: Long): Action[AnyContent] = Action.async {
+    imageService.getByFolderId(folderId).map(images => Ok(Json.toJson(images)))
   }
+
+  def updateTags(id: Long): Action[List[String]] =
+    Action.async(parse.json[List[String]]) { request =>
+      imageService.updateTags(id, request.body).map {
+        case Some(tags) => Ok(Json.toJson(tags))
+        case None       => NotFound
+      }
+    }
+
+  def updateLikes(id: Long): Action[Int] =
+    Action.async(parse.json[Int]) { request =>
+      imageService.updateLikes(id, request.body).map {
+        case Some(likes) => Ok(Json.toJson(likes))
+        case None        => NotFound
+      }
+    }
+
+  def updateEditorIds(id: Long): Action[List[Long]] =
+    Action.async(parse.json[List[Long]]) { request =>
+      imageService.updateEditorIds(id, request.body).map {
+        case Some(editorIds) => Ok(Json.toJson(editorIds))
+        case None            => NotFound
+      }
+    }
+
+  def updateFolderId(id: Long): Action[Long] =
+    Action.async(parse.json[Long]) { request =>
+      imageService.updateFolderId(id, request.body).map {
+        case Some(folderId) => Ok(Json.toJson(folderId))
+        case None           => NotFound
+      }
+    }
   def delete(id: Long): Action[AnyContent] = Action.async {
     imageService.delete(id).map {
       case Some(_) => NoContent

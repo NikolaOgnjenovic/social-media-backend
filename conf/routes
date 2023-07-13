@@ -3,6 +3,20 @@
 # https://www.playframework.com/documentation/latest/ScalaRouting
 # ~~~~
 
+###
+#   requestBody:
+#     content:
+#       application/json:
+#         schema:
+#           type: object
+#           $ref: "#/definitions/dtos.NewImage"
+#   responses:
+#     200:
+#       schema:
+#         $ref: '#/definitions/models.Image'
+###
+POST    /api/v1/images            controllers.ImageController.create
+
 # An example controller showing a sample home page
 GET     /                           controllers.HomeController.index()
 
@@ -43,20 +57,12 @@ GET     /api/v1/images/tags/:tags       controllers.ImageController.getByTags(ta
 ###
 GET     /api/v1/images/title/:title        controllers.ImageController.getByTitle(title: String)
 
-###
-#   requestBody:
-#     content:
-#       application/json:
-#         schema:
-#           type: object
-#           $ref: "#/definitions/dtos.NewImage"
-#   responses:
-#     200:
-#       schema:
-#         $ref: '#/definitions/models.Image'
-###
-POST    /api/v1/images            controllers.ImageController.create
+GET     /api/v1/images/folder/:folderId        controllers.ImageController.getByFolderId(folderId: Long)
 
+PATCH     /api/v1/images/:id/tags        controllers.ImageController.updateTags(id: Long)
+PATCH     /api/v1/images/:id/likes       controllers.ImageController.updateLikes(id: Long)
+PATCH     /api/v1/images/:id/editorIds        controllers.ImageController.updateEditorIds(id: Long)
+PATCH     /api/v1/images/:id/folderId        controllers.ImageController.updateFolderId(id: Long)
 
 ###
 #   responses:
@@ -66,20 +72,6 @@ POST    /api/v1/images            controllers.ImageController.create
 #       description: Image with specified ID was not found
 ###
 DELETE  /api/v1/images/:id        controllers.ImageController.delete(id: Long)
-
-###
-#   requestBody:
-#     content:
-#       application/json:
-#         schema:
-#           type: object
-#           $ref: "#/definitions/models.Image"
-#   responses:
-#     200:
-#       schema:
-#         $ref: '#/definitions/models.Image'
-###
-PUT     /api/v1/images/:id        controllers.ImageController.update(id: Long)
 
 ###
 #   responses:
@@ -145,7 +137,61 @@ DELETE  /api/v1/folders/:id        controllers.FolderController.delete(id: Long)
 #       schema:
 #         $ref: '#/definitions/models.Folder'
 ###
-PUT     /api/v1/folders/:id        controllers.FolderController.update(id: Long)
+PATCH     /api/v1/folders/:id/title        controllers.FolderController.updateTitle(id: Long)
+
+###
+#   responses:
+#     200:
+#       schema:
+#         $ref: '#/definitions/models.Comment'
+###
+GET     /api/v1/comments            controllers.CommentController.getAll
+
+###
+#   responses:
+#     200:
+#       schema:
+#         $ref: '#/definitions/models.Comment'
+#     404:
+#       description: Comment with specified ID was not found
+###
+GET     /api/v1/comments/:id        controllers.CommentController.getById(id: Long)
+
+###
+#   responses:
+#     200:
+#       schema:
+#         $ref: '#/definitions/models.Comment'
+#     404:
+#       description: Comment with specified author ID was not found
+###
+GET     /api/v1/comments/author/:authorId        controllers.CommentController.getByAuthorId(authorId: Long)
+
+###
+#   requestBody:
+#     content:
+#       application/json:
+#         schema:
+#           type: object
+#           $ref: "#/definitions/dtos.NewComment"
+#   responses:
+#     200:
+#       schema:
+#         $ref: '#/definitions/models.Comment'
+###
+POST    /api/v1/comments            controllers.CommentController.create
+
+###
+#   responses:
+#     204:
+#       description: Comment with specified id has been deleted
+#     404:
+#       description: Comment with specified ID was not found
+###
+DELETE  /api/v1/comments/:id        controllers.CommentController.delete(id: Long)
+
+PATCH    /api/v1/comments/:id/content        controllers.CommentController.updateContent(id: Long)
+PATCH    /api/v1/comments/:id/likes       controllers.CommentController.updateLikes(id: Long)
 
 # Map static resources from the /public folder to the /assets URL path
 ### NoDocs ###

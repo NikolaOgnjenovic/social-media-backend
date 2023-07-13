@@ -4,7 +4,6 @@ import play.api.libs.json.{Json, OFormat}
 case class Folder(
     id: Long,
     authorId: Long,
-    imageIds: List[String],
     title: String
 )
 

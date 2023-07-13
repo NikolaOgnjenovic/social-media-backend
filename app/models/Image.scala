@@ -5,7 +5,11 @@ case class Image(
     authorId: Long,
     tags: List[String],
     title: String,
-    likes: Int
+    likes: Int,
+    editorIds: List[Long], // A list of users which can edit the image data
+    folderId: Long
+    // TODO: Where do I authenticate? On the front end?
+    //  What if someone sends a request to edit a random image? How do I check if the user is in the editors list
 )
 
 object Image {

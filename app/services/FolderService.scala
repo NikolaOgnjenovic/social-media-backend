@@ -16,8 +16,8 @@ class FolderService @Inject() (folderRepository: FolderRepository) {
   def getByAuthorId(authorId: Long): Future[Option[Folder]] =
     folderRepository.getByAuthorId(authorId)
 
-  def update(id: Long, folder: Folder): Future[Option[Folder]] =
-    folderRepository.update(id, folder)
+  def updateTitle(id: Long, title: String): Future[Option[String]] =
+    folderRepository.updateTitle(id, title)
 
   def delete(id: Long): Future[Option[Int]] = folderRepository.delete(id)
 }

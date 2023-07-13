@@ -18,6 +18,7 @@ class FolderRepository @Inject() (
   private val folders = TableQuery[FolderTable]
 
   db.run(folders.schema.createIfNotExists)
+  def createTable(): Future[Unit] = db.run(folders.schema.createIfNotExists)
 
   def insert(folder: Folder): Future[Option[Folder]] =
     db.run((folders returning folders) += folder)
@@ -47,37 +48,26 @@ class FolderRepository @Inject() (
       }
   }
 
-  def update(id: Long, folder: Folder): Future[Option[Folder]] = {
+  def updateTitle(id: Long, title: String): Future[Option[String]] = {
     db.run(
-      folders
-        .filter(folder => folder.id === id)
-        .update(
-          folder.copy(
-            id = folder.id,
-            imageIds = folder.imageIds,
-            title = folder.title
-          )
-        )
-        .map {
-          case 0       => None
-          case 1       => Some(folder)
-          case updated => throw new RuntimeException(s"Updated $updated rows")
-        }
-    )
+      folders.filter(folder => folder.id === id).map(_.title).update(title)
+    ).map {
+      case 0       => None
+      case 1       => Some(title)
+      case updated => throw new RuntimeException(s"Updated $updated rows")
+    }
   }
 
   private class FolderTable(tag: Tag) extends Table[Folder](tag, "folders") {
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
     def authorId = column[Long]("author_id")
-    def imageIds = column[List[String]]("image_ids") // csv
     def title = column[String]("title")
 
     // Maps table data to the case class
     override def * = (
       id,
       authorId,
-      imageIds,
       title
     ) <> ((Folder.apply _).tupled, Folder.unapply)
   }

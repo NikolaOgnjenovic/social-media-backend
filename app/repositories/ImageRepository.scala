@@ -18,6 +18,7 @@ class ImageRepository @Inject() (
   private val images = TableQuery[ImageTable]
 
   db.run(images.schema.createIfNotExists)
+  def createTable(): Future[Unit] = db.run(images.schema.createIfNotExists)
 
   def insert(image: Image): Future[Option[Image]] =
     db.run((images returning images) += image)
@@ -42,6 +43,10 @@ class ImageRepository @Inject() (
     db.run(images.filter(_.title.like("%" + title + "%")).result)
   }
 
+  def getByFolderId(folderId: Long): Future[Seq[Image]] = {
+    db.run(images.filter(_.folderId === folderId).result)
+  }
+
   def delete(id: Long): Future[Option[Int]] = {
     //
     db.run(images.filter(_.id === id).delete)
@@ -52,14 +57,59 @@ class ImageRepository @Inject() (
       }
   }
 
-  def update(id: Long, image: Image): Future[Option[Image]] = {
+  def updateTags(id: Long, tags: List[String]): Future[Option[List[String]]] = {
     db.run(
       images
-        .filter(_.id === id)
-        .update(image.copy(tags = image.tags, title = image.title))
+        .filter(image => image.id === id)
+        .map(_.tags)
+        .update(tags)
         .map {
           case 0       => None
-          case 1       => Some(image)
+          case 1       => Some(tags)
+          case updated => throw new RuntimeException(s"Updated $updated rows")
+        }
+    )
+  }
+  def updateLikes(id: Long, likes: Int): Future[Option[Int]] = {
+    db.run(
+      images
+        .filter(image => image.id === id)
+        .map(_.likes)
+        .update(likes)
+        .map {
+          case 0       => None
+          case 1       => Some(likes)
+          case updated => throw new RuntimeException(s"Updated $updated rows")
+        }
+    )
+  }
+
+  def updateEditorIds(
+      id: Long,
+      editorIds: List[Long]
+  ): Future[Option[List[Long]]] = {
+    db.run(
+      images
+        .filter(image => image.id === id)
+        .map(_.editorIds)
+        .update(editorIds)
+        .map {
+          case 0       => None
+          case 1       => Some(editorIds)
+          case updated => throw new RuntimeException(s"Updated $updated rows")
+        }
+    )
+  }
+
+  def updateFolderId(id: Long, folderId: Long): Future[Option[Long]] = {
+    db.run(
+      images
+        .filter(image => image.id === id)
+        .map(_.folderId)
+        .update(folderId)
+        .map {
+          case 0       => None
+          case 1       => Some(folderId)
           case updated => throw new RuntimeException(s"Updated $updated rows")
         }
     )
@@ -72,6 +122,8 @@ class ImageRepository @Inject() (
 
     def title = column[String]("title")
     def likes = column[Int]("likes")
+    def editorIds = column[List[Long]]("editor_ids")
+    def folderId = column[Long]("folder_id")
 
     // Maps table data to the case class
     override def * =
@@ -80,7 +132,9 @@ class ImageRepository @Inject() (
         authorId,
         tags,
         title,
-        likes
+        likes,
+        editorIds,
+        folderId
       ) <> ((Image.apply _).tupled, Image.unapply)
   }
 }
