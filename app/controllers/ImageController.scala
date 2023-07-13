@@ -28,7 +28,7 @@ class ImageController @Inject() (
     Action(parse.multipartFormData) { request =>
       request.body.dataParts("authorId")
       request.body
-        .file("picture")
+        .file("image")
         .map { picture =>
           // Upload the picture
           val filename = Paths.get(picture.filename).getFileName
@@ -88,10 +88,10 @@ class ImageController @Inject() (
       }
     }
 
-  def updateLikes(id: Long): Action[Int] =
+  def updatelikeCount(id: Long): Action[Int] =
     Action.async(parse.json[Int]) { request =>
-      imageService.updateLikes(id, request.body).map {
-        case Some(likes) => Ok(Json.toJson(likes))
+      imageService.updatelikeCount(id, request.body).map {
+        case Some(likeCount) => Ok(Json.toJson(likeCount))
         case None        => NotFound
       }
     }

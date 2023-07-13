@@ -5,7 +5,7 @@ case class Image(
     authorId: Long,
     tags: List[String],
     title: String,
-    likes: Int,
+    likeCount: Int,
     editorIds: List[Long], // A list of users which can edit the image data
     folderId: Long,
     imagePath: String

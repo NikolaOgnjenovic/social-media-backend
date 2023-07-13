@@ -19,7 +19,7 @@ class CommentService @Inject() (commentRepository: CommentRepository) {
   def updateContent(id: Long, content: String): Future[Option[String]] =
     commentRepository.updateContent(id, content)
 
-  def updateLikes(id: Long, likes: Int): Future[Option[Int]] =
-    commentRepository.updateLikes(id, likes)
+  def updatelikeCount(id: Long, likeCount: Int): Future[Option[Int]] =
+    commentRepository.updatelikeCount(id, likeCount)
   def delete(id: Long): Future[Option[Int]] = commentRepository.delete(id)
 }

@@ -7,7 +7,7 @@ case class Comment(
     authorId: Long,
     imageId: Long,
     content: String,
-    likes: Int
+    likeCount: Int
 )
 
 object Comment {

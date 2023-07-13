@@ -1,11 +1,213 @@
+openapi: 3.0.0
+info:
+  title: Image sharing webapp API
+  description: Image sharing webapp API made using the Play Framework, Slick & Scala
+  version: 0.0.1
+servers:
+  - url: http://localhost:9000/v1
+    description: Localhost only (for now!)
+paths:
+  /images:
+    get:
+      summary: Returns a list of all images in the database.
+      responses:
+        '200':
+          description: A JSON array of image objects.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Image'
+    post:
+      summary: Creates and returns a new image.
+      description: Creates a new image with the given author ID, tags, title and image file. Automatically generates the ID, sets the likes to 0, assigns the author ID to the list of editor IDs and the folder ID to -1.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                authorId:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+                title:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: A JSON object of the image.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Image'
+  /images/{id}:
+    get:
+      summary: Returns the image with the given ID.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+            minimum: 1
+          description: The image ID.
+      responses:
+        '200':
+          description: A JSON representation of the image with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Image'
+        '404':
+          description: Image with specified ID was not found.
+    delete:
+      summary: Deletes the image with the given ID.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+            minimum: 1
+          description: The image ID.
+      responses:
+        '204':
+          description: Image with the specified ID was deleted.
+        '404':
+          description: Image with specified ID was not found.
 
-requestBody:
- content:
-   application/json:
-     schema:
-       type: object
-       $ref: "#/definitions/dtos.NewImage"
-responses:
- 200:
-   schema:
-     $ref: '#/definitions/models.Image'
+  /images/{id}/tags:
+    patch:
+      summary: Updates the tag list of the image with the given ID.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+            minimum: 1
+          description: The image ID.
+        - in: query
+          name: tags
+          schema:
+            type: array
+            items:
+              type: string
+            description: A list of strings which represent the image tags.
+      responses:
+        '200':
+          description: Returns the newly updated tag list.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '404':
+          description: Image with specified ID was not found.
+
+  /images/{id}/likeCount:
+    patch:
+      summary: Updates the number of likes of the image with the given ID.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+            minimum: 1
+          description: The image ID.
+        - in: query
+          name: likeCount
+          schema:
+            type: integer
+            description: The new number of likes of the image.
+      responses:
+        '200':
+          description: Newly updated number of likes.
+          content:
+            application/json:
+              schema:
+                type: integer
+        '404':
+          description: Image with specified ID was not found.
+
+  /images/{id}/editorIds:
+    patch:
+      summary: Updates the editor id list of the image with the given ID.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+            minimum: 1
+          description: The image ID.
+        - in: query
+          name: editorIds
+          schema:
+            type: array
+            items:
+              type: integer
+            description: The new list of editor IDs (longs).
+      responses:
+        '200':
+          description: The new list of editor IDs (longs).
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+        '404':
+          description: Image with specified ID was not found.
+  /images/{id}/folderId:
+    patch:
+      summary: Updates the folder ID of the image with the given ID.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+            minimum: 1
+          description: The image ID.
+        - in: query
+          name: folderId
+          schema:
+            type: integer
+            description: The new folder ID.
+      responses:
+        '200':
+          description: Newly updated folder ID.
+          content:
+            application/json:
+              schema:
+                type: integer
+        '404':
+          description: Image with specified ID was not found.
+
+components:
+  schemas:
+    Image:
+      properties:
+        id:
+          type: integer
+        authorId:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
+        title:
+          type: string
+        likes:
+          type: integer
+        editorIds:
+          type: array
+          items:
+            type: integer
+        folderId:
+          type: integer
+        imagePath:
+          type: string

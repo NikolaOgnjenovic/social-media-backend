@@ -25,8 +25,8 @@ class ImageService @Inject() (imageRepository: ImageRepository) {
 
   def updateTags(id: Long, tags: List[String]): Future[Option[List[String]]] =
     imageRepository.updateTags(id, tags)
-  def updateLikes(id: Long, likes: Int): Future[Option[Int]] =
-    imageRepository.updateLikes(id, likes)
+  def updatelikeCount(id: Long, likeCount: Int): Future[Option[Int]] =
+    imageRepository.updatelikeCount(id, likeCount)
   def updateEditorIds(
       id: Long,
       editorIds: List[Long]
@@ -35,7 +35,5 @@ class ImageService @Inject() (imageRepository: ImageRepository) {
   def updateFolderId(id: Long, folderId: Long): Future[Option[Long]] =
     imageRepository.updateFolderId(id, folderId)
 
-  def updateImagePath(id: Long, imagePath: String): Future[Option[String]] =
-    imageRepository.updateImagePath(id, imagePath)
   def delete(id: Long): Future[Option[Int]] = imageRepository.delete(id)
 }

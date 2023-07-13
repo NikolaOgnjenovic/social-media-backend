@@ -3,6 +3,8 @@
 # https://www.playframework.com/documentation/latest/ScalaRouting
 # ~~~~
 
+GET /swagger/*file controllers.Assets.at(path = "/target/web/public/main/lib/swagger-ui", file)
+
 # An example controller showing a sample home page
 GET     /                           controllers.HomeController.index()
 
@@ -60,10 +62,9 @@ GET     /api/v1/images/title/:title        controllers.ImageController.getByTitl
 GET     /api/v1/images/folder/:folderId        controllers.ImageController.getByFolderId(folderId: Long)
 
 PATCH     /api/v1/images/:id/tags        controllers.ImageController.updateTags(id: Long)
-PATCH     /api/v1/images/:id/likes       controllers.ImageController.updateLikes(id: Long)
+PATCH     /api/v1/images/:id/likeCount       controllers.ImageController.updatelikeCount(id: Long)
 PATCH     /api/v1/images/:id/editorIds        controllers.ImageController.updateEditorIds(id: Long)
 PATCH     /api/v1/images/:id/folderId        controllers.ImageController.updateFolderId(id: Long)
-# PATCH     /api/v1/images/:id/imagePath        controllers.ImageController.updateImagePath(id: Long)
 
 ###
 #   responses:
@@ -192,7 +193,7 @@ POST    /api/v1/comments            controllers.CommentController.create
 DELETE  /api/v1/comments/:id        controllers.CommentController.delete(id: Long)
 
 PATCH    /api/v1/comments/:id/content        controllers.CommentController.updateContent(id: Long)
-PATCH    /api/v1/comments/:id/likes       controllers.CommentController.updateLikes(id: Long)
+PATCH    /api/v1/comments/:id/likeCount       controllers.CommentController.updatelikeCount(id: Long)
 
 # Map static resources from the /public folder to the /assets URL path
 ### NoDocs ###

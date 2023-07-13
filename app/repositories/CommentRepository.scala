@@ -60,15 +60,15 @@ class CommentRepository @Inject() (
     )
   }
 
-  def updateLikes(id: Long, likes: Int): Future[Option[Int]] = {
+  def updatelikeCount(id: Long, likeCount: Int): Future[Option[Int]] = {
     db.run(
       comments
         .filter(comment => comment.id === id)
-        .map(_.likes)
-        .update(likes)
+        .map(_.likeCount)
+        .update(likeCount)
         .map {
           case 0       => None
-          case 1       => Some(likes)
+          case 1       => Some(likeCount)
           case updated => throw new RuntimeException(s"Updated $updated rows")
         }
     )
@@ -81,7 +81,7 @@ class CommentRepository @Inject() (
 
     def content = column[String]("content")
 
-    def likes = column[Int]("likes")
+    def likeCount = column[Int]("like_count")
 
     // Maps table data to the case class
     override def * =
@@ -90,7 +90,7 @@ class CommentRepository @Inject() (
         authorId,
         imageId,
         content,
-        likes
+        likeCount
       ) <> ((Comment.apply _).tupled, Comment.unapply)
   }
 }

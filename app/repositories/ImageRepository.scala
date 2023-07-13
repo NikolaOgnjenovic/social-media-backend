@@ -69,15 +69,15 @@ class ImageRepository @Inject() (
         }
     )
   }
-  def updateLikes(id: Long, likes: Int): Future[Option[Int]] = {
+  def updatelikeCount(id: Long, likeCount: Int): Future[Option[Int]] = {
     db.run(
       images
         .filter(image => image.id === id)
-        .map(_.likes)
-        .update(likes)
+        .map(_.likeCount)
+        .update(likeCount)
         .map {
           case 0       => None
-          case 1       => Some(likes)
+          case 1       => Some(likeCount)
           case updated => throw new RuntimeException(s"Updated $updated rows")
         }
     )
@@ -120,7 +120,7 @@ class ImageRepository @Inject() (
     def tags = column[List[String]]("tags")
 
     def title = column[String]("title")
-    def likes = column[Int]("likes")
+    def likeCount = column[Int]("like_count")
     def editorIds = column[List[Long]]("editor_ids")
     def folderId = column[Long]("folder_id")
     def imagePath = column[String]("image_path")
@@ -132,7 +132,7 @@ class ImageRepository @Inject() (
         authorId,
         tags,
         title,
-        likes,
+        likeCount,
         editorIds,
         folderId,
         imagePath
