@@ -7,7 +7,8 @@ case class Image(
     title: String,
     likes: Int,
     editorIds: List[Long], // A list of users which can edit the image data
-    folderId: Long
+    folderId: Long,
+    imagePath: String
     // TODO: Where do I authenticate? On the front end?
     //  What if someone sends a request to edit a random image? How do I check if the user is in the editors list
 )

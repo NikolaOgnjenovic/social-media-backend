@@ -115,6 +115,20 @@ class ImageRepository @Inject() (
     )
   }
 
+  def updateImagePath(id: Long, imagePath: String): Future[Option[String]] = {
+    db.run(
+      images
+        .filter(image => image.id === id)
+        .map(_.imagePath)
+        .update(imagePath)
+        .map {
+          case 0       => None
+          case 1       => Some(imagePath)
+          case updated => throw new RuntimeException(s"Updated $updated rows")
+        }
+    )
+  }
+
   private class ImageTable(tag: Tag) extends Table[Image](tag, "images") {
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
     def authorId = column[Long]("author_id")
@@ -124,6 +138,7 @@ class ImageRepository @Inject() (
     def likes = column[Int]("likes")
     def editorIds = column[List[Long]]("editor_ids")
     def folderId = column[Long]("folder_id")
+    def imagePath = column[String]("image_path")
 
     // Maps table data to the case class
     override def * =
@@ -134,7 +149,8 @@ class ImageRepository @Inject() (
         title,
         likes,
         editorIds,
-        folderId
+        folderId,
+        imagePath
       ) <> ((Image.apply _).tupled, Image.unapply)
   }
 }

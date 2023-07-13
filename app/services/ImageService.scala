@@ -34,5 +34,8 @@ class ImageService @Inject() (imageRepository: ImageRepository) {
     imageRepository.updateEditorIds(id, editorIds)
   def updateFolderId(id: Long, folderId: Long): Future[Option[Long]] =
     imageRepository.updateFolderId(id, folderId)
+
+  def updateImagePath(id: Long, imagePath: String): Future[Option[String]] =
+    imageRepository.updateImagePath(id, imagePath)
   def delete(id: Long): Future[Option[Int]] = imageRepository.delete(id)
 }

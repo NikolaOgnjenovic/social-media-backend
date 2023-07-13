@@ -2,12 +2,21 @@ package controllers
 
 import dtos.NewImage
 import models.Image
+import play.api.libs.Files
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
+import play.api.mvc.{
+  Action,
+  AnyContent,
+  BaseController,
+  ControllerComponents,
+  MultipartFormData
+}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import services.ImageService
+
+import java.nio.file.Paths
 
 @Singleton
 class ImageController @Inject() (
@@ -15,6 +24,9 @@ class ImageController @Inject() (
     imageService: ImageService
 )(implicit ec: ExecutionContext)
     extends BaseController {
+  // TODO: Group create & upload into a single request.
+  //  Problem: Adding a File to the NewImage crashes because it requires an
+  //  implicit val fileReader: Reads[File] = Json.reads[File] but File has no unapply function
   def create: Action[NewImage] =
     Action.async(parse.json[NewImage]) { request =>
       val imageToAdd: Image = request.body
@@ -80,6 +92,29 @@ class ImageController @Inject() (
         case None           => NotFound
       }
     }
+
+  def updateImagePath(
+      id: Long
+  ): Action[MultipartFormData[Files.TemporaryFile]] = {
+    Action(parse.multipartFormData) { request =>
+      request.body
+        .file("picture")
+        .map { picture =>
+          val filename = Paths.get(picture.filename).getFileName
+          picture.ref.copyTo(
+            Paths.get(s"public/images/$filename"),
+            replace = true
+          )
+          imageService.updateImagePath(id, s"public/images/$filename")
+          // TODO: update image path with given id
+          Ok("File uploaded")
+        }
+        .getOrElse(
+          Redirect(routes.HomeController.index())
+        )
+    }
+  }
+
   def delete(id: Long): Action[AnyContent] = Action.async {
     imageService.delete(id).map {
       case Some(_) => NoContent

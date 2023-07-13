@@ -2,12 +2,17 @@ package dtos
 
 import models.Image
 import play.api.libs.json.{Json, Reads}
-import scala.language.implicitConversions
 
-case class NewImage(authorId: Long, tags: List[String], title: String)
+import scala.language.implicitConversions
+case class NewImage(
+    authorId: Long,
+    tags: List[String],
+    title: String
+)
 
 object NewImage {
   implicit val jsonReader: Reads[NewImage] = Json.reads[NewImage]
+
   implicit def toModel(newImage: NewImage): Image =
     Image(
       0,
@@ -18,6 +23,7 @@ object NewImage {
       List(
         newImage.authorId
       ),
-      -1 // folder id
+      -1, // folder id,
+      "" // image path
     )
 }
