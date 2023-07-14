@@ -15,8 +15,11 @@ class CommentRepository @Inject() (
   import profile.api._
 
   private val comments = TableQuery[CommentTable]
-  // TODO: create on startup??
-  db.run(comments.schema.createIfNotExists)
+
+  createTable()
+  def createTable(): Future[Unit] = {
+    db.run(comments.schema.createIfNotExists)
+  }
 
   def insert(comment: Comment): Future[Option[Comment]] =
     db.run((comments returning comments) += comment)

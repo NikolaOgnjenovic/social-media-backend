@@ -17,7 +17,10 @@ class ImageRepository @Inject() (
 
   private val images = TableQuery[ImageTable]
 
-  db.run(images.schema.createIfNotExists)
+  createTable()
+  def createTable(): Future[Unit] = {
+    db.run(images.schema.createIfNotExists)
+  }
 
   def insert(image: Image): Future[Option[Image]] =
     db.run((images returning images) += image)
