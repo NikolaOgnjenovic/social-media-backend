@@ -29,5 +29,9 @@ libraryDependencies ++= Seq(
   "com.typesafe.slick" %% "slick-hikaricp" % "3.4.1",
   "com.github.tminglei" %% "slick-pg" % "0.21.1",
   "com.github.tminglei" %% "slick-pg_play-json" % "0.21.1",
-  "ch.qos.logback" % "logback-classic" % "1.3.0"
+  // TODO: logback error that I solved by using this specific version?
+  "ch.qos.logback" % "logback-classic" % "1.3.0",
+  // Minio
+  "io.minio" % "minio" % "8.3.7", // This old version uses jackson 11 which fits scala version 2.13?
+  "commons-io" % "commons-io" % "20030203.000550"
 )

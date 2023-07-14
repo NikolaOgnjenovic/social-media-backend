@@ -186,7 +186,45 @@ paths:
                 type: integer
         '404':
           description: Image with specified ID was not found.
-
+  /folders:
+    get:
+      summary: Returns a list of all folders in the database.
+      responses:
+        '200':
+          description: A JSON array of folder objects.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Image'
+    post:
+      summary: Creates and returns a new image.
+      description: Creates a new image with the given author ID, tags, title and image file. Automatically generates the ID, sets the likes to 0, assigns the author ID to the list of editor IDs and the folder ID to -1.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                authorId:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+                title:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: A JSON object of the image.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Image'
 components:
   schemas:
     Image:
@@ -210,4 +248,12 @@ components:
         folderId:
           type: integer
         imagePath:
+          type: string
+    Folder:
+      properties:
+        id:
+          type: integer
+        authorId:
+          type: integer
+        title:
           type: string

@@ -23,7 +23,7 @@ class FolderRepository @Inject() (
     db.run((folders returning folders) += folder)
       .map(Some.apply[Folder])
       // Throw a PSQLException if the query fails
-      .recover { case e: PSQLException =>
+      .recover { case _: PSQLException =>
         None
       }
 

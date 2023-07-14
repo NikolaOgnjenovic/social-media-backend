@@ -3,13 +3,32 @@
 # https://www.playframework.com/documentation/latest/ScalaRouting
 # ~~~~
 
-GET /swagger/*file controllers.Assets.at(path = "/target/web/public/main/lib/swagger-ui", file)
-
 # An example controller showing a sample home page
 GET     /                           controllers.HomeController.index()
-
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+
+### NoDocs ###
+POST    /api/v1/images            controllers.ImageController.create
+### NoDocs ###
+GET     /api/v1/images            controllers.ImageController.getAll
+### NoDocs ###
+GET     /api/v1/images/:id        controllers.ImageController.getById(id: Long)
+GET     /api/v1/images/:id/file     controllers.ImageController.getImageFileById(id: Long)
+### NoDocs ###
+GET     /api/v1/images/tags/:tags       controllers.ImageController.getByTags(tags: String)
+### NoDocs ###
+GET     /api/v1/images/title/:title        controllers.ImageController.getByTitle(title: String)
+### NoDocs ###
+PATCH     /api/v1/images/:id/tags        controllers.ImageController.updateTags(id: Long)
+### NoDocs ###
+PATCH     /api/v1/images/:id/likeCount       controllers.ImageController.updateLikeCount(id: Long)
+### NoDocs ###
+PATCH     /api/v1/images/:id/editorIds        controllers.ImageController.updateEditorIds(id: Long)
+### NoDocs ###
+PATCH     /api/v1/images/:id/folderId        controllers.ImageController.updateFolderId(id: Long)
+### NoDocs ###
+DELETE  /api/v1/images/:id        controllers.ImageController.delete(id: Long)
 
 ###
 #   requestBody:
@@ -17,64 +36,13 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 #       application/json:
 #         schema:
 #           type: object
-#           $ref: "#/definitions/dtos.NewImage"
+#           $ref: "#/definitions/dtos.NewFolder"
 #   responses:
 #     200:
 #       schema:
-#         $ref: '#/definitions/models.Image'
+#         $ref: '#/definitions/models.Folder'
 ###
-POST    /api/v1/images            controllers.ImageController.create
-
-###
-#   responses:
-#     200:
-#       schema:
-#         $ref: '#/definitions/models.Image'
-###
-GET     /api/v1/images            controllers.ImageController.getAll
-
-###
-#   responses:
-#     200:
-#       schema:
-#         $ref: '#/definitions/models.Image'
-#     404:
-#       description: Image with specified ID was not found
-###
-GET     /api/v1/images/:id        controllers.ImageController.getById(id: Long)
-
-###
-#   responses:
-#     200:
-#       schema:
-#         $ref: '#/definitions/models.Image'
-###
-GET     /api/v1/images/tags/:tags       controllers.ImageController.getByTags(tags: String)
-
-###
-#   responses:
-#     200:
-#       schema:
-#         $ref: '#/definitions/models.Image'
-###
-GET     /api/v1/images/title/:title        controllers.ImageController.getByTitle(title: String)
-
-GET     /api/v1/images/folder/:folderId        controllers.ImageController.getByFolderId(folderId: Long)
-
-PATCH     /api/v1/images/:id/tags        controllers.ImageController.updateTags(id: Long)
-PATCH     /api/v1/images/:id/likeCount       controllers.ImageController.updatelikeCount(id: Long)
-PATCH     /api/v1/images/:id/editorIds        controllers.ImageController.updateEditorIds(id: Long)
-PATCH     /api/v1/images/:id/folderId        controllers.ImageController.updateFolderId(id: Long)
-
-###
-#   responses:
-#     204:
-#       description: Image with specified id has been deleted
-#     404:
-#       description: Image with specified ID was not found
-###
-DELETE  /api/v1/images/:id        controllers.ImageController.delete(id: Long)
-
+POST    /api/v1/folders            controllers.FolderController.create
 ###
 #   responses:
 #     200:
@@ -82,6 +50,7 @@ DELETE  /api/v1/images/:id        controllers.ImageController.delete(id: Long)
 #         $ref: '#/definitions/models.Folder'
 ###
 GET     /api/v1/folders            controllers.FolderController.getAll
+GET     /api/v1/images/folder/:folderId        controllers.ImageController.getByFolderId(folderId: Long)
 
 ###
 #   responses:
@@ -103,19 +72,7 @@ GET     /api/v1/folders/:id        controllers.FolderController.getById(id: Long
 ###
 GET     /api/v1/folders/author/:authorId        controllers.FolderController.getByAuthorId(authorId: Long)
 
-###
-#   requestBody:
-#     content:
-#       application/json:
-#         schema:
-#           type: object
-#           $ref: "#/definitions/dtos.NewFolder"
-#   responses:
-#     200:
-#       schema:
-#         $ref: '#/definitions/models.Folder'
-###
-POST    /api/v1/folders            controllers.FolderController.create
+
 
 
 ###
@@ -193,7 +150,7 @@ POST    /api/v1/comments            controllers.CommentController.create
 DELETE  /api/v1/comments/:id        controllers.CommentController.delete(id: Long)
 
 PATCH    /api/v1/comments/:id/content        controllers.CommentController.updateContent(id: Long)
-PATCH    /api/v1/comments/:id/likeCount       controllers.CommentController.updatelikeCount(id: Long)
+PATCH    /api/v1/comments/:id/likeCount       controllers.CommentController.updateLikeCount(id: Long)
 
 # Map static resources from the /public folder to the /assets URL path
 ### NoDocs ###

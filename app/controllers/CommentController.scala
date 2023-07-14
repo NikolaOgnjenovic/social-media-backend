@@ -51,9 +51,9 @@ class CommentController @Inject() (
       }
     }
 
-  def updatelikeCount(id: Long): Action[Int] = Action.async(parse.json[Int]) {
+  def updateLikeCount(id: Long): Action[Int] = Action.async(parse.json[Int]) {
     request =>
-      commentService.updatelikeCount(id, request.body).map {
+      commentService.updateLikeCount(id, request.body).map {
         case Some(likeCount) => Ok(Json.toJson(likeCount))
         case None        => NotFound
       }

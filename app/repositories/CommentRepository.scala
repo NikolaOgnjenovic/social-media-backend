@@ -60,7 +60,7 @@ class CommentRepository @Inject() (
     )
   }
 
-  def updatelikeCount(id: Long, likeCount: Int): Future[Option[Int]] = {
+  def updateLikeCount(id: Long, likeCount: Int): Future[Option[Int]] = {
     db.run(
       comments
         .filter(comment => comment.id === id)

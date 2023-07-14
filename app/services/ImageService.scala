@@ -6,13 +6,19 @@ import repositories.ImageRepository
 import javax.inject.Inject
 import scala.concurrent.Future
 
-class ImageService @Inject() (imageRepository: ImageRepository) {
+class ImageService @Inject() (
+    imageRepository: ImageRepository,
+    minioService: MinioService
+) {
   def create(image: Image): Future[Option[Image]] =
     imageRepository.insert(image)
 
   def getAll: Future[Seq[Image]] = imageRepository.getAll
 
   def getById(id: Long): Future[Option[Image]] = imageRepository.getById(id)
+
+  def getImageFileById(id: Long): Future[Option[Array[Byte]]] =
+    minioService.get("images", id.toString)
 
   def getByTags(tags: List[String]): Future[Seq[Image]] =
     imageRepository.getByTags(tags)
@@ -25,8 +31,8 @@ class ImageService @Inject() (imageRepository: ImageRepository) {
 
   def updateTags(id: Long, tags: List[String]): Future[Option[List[String]]] =
     imageRepository.updateTags(id, tags)
-  def updatelikeCount(id: Long, likeCount: Int): Future[Option[Int]] =
-    imageRepository.updatelikeCount(id, likeCount)
+  def updateLikeCount(id: Long, likeCount: Int): Future[Option[Int]] =
+    imageRepository.updateLikeCount(id, likeCount)
   def updateEditorIds(
       id: Long,
       editorIds: List[Long]

@@ -24,7 +24,6 @@ object NewImage {
       List(
         newImage.authorId
       ),
-      -1, // folder id,
-      newImage.imagePath // image path
+      -1 // folder id,
     )
 }
