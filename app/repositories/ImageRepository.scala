@@ -47,7 +47,6 @@ class ImageRepository @Inject() (
   }
 
   def delete(id: Long): Future[Option[Int]] = {
-    //
     db.run(images.filter(_.id === id).delete)
       .map {
         case 0       => None

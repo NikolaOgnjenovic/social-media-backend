@@ -9,7 +9,6 @@ import io.minio.{
   RemoveObjectArgs,
   UploadObjectArgs
 }
-import io.minio.GetObjectResponse
 
 import java.io.ByteArrayOutputStream
 import scala.concurrent.{ExecutionContext, Future}
@@ -87,9 +86,17 @@ class MinioService @Inject() (implicit ec: ExecutionContext) {
     objectData
   }
 
-  def remove(bucketName: String, id: String): Unit = {
-    minioClient.removeObject(
-      RemoveObjectArgs.builder().bucket(bucketName).`object`(id).build()
-    )
+  def remove(bucketName: String, id: String): Future[Option[Int]] = {
+    val removalData: Future[Option[Int]] = Future {
+      try {
+        minioClient.removeObject(
+          RemoveObjectArgs.builder().bucket(bucketName).`object`(id).build()
+        )
+        Some(1)
+      } catch {
+        case _: io.minio.errors.MinioException | _: java.io.IOException => None
+      }
+    }
+    removalData
   }
 }

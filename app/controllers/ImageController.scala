@@ -30,8 +30,6 @@ class ImageController @Inject() (
 )(implicit ec: ExecutionContext)
     extends BaseController {
   def create: Action[MultipartFormData[Files.TemporaryFile]] = {
-    var imageId: Long = -1L
-    var imagePath: String = ""
     Action(parse.multipartFormData) { request =>
       request.body.dataParts("authorId")
       request.body
@@ -39,7 +37,7 @@ class ImageController @Inject() (
         .map { picture =>
           // Upload the picture
           val filename = Paths.get(picture.filename).getFileName
-          imagePath = s"public/images/$filename"
+          val imagePath = s"public/images/$filename"
           picture.ref.copyTo(
             Paths.get(imagePath),
             replace = true
@@ -55,7 +53,10 @@ class ImageController @Inject() (
 
           imageService.create(imageToAdd).map {
             case Some(image) =>
-              imageId = image.id
+              // Upload the image to minio and delete the temporary file
+              minioService
+                .upload("images", image.id.toString, imagePath)
+              Paths.get(imagePath).toFile.delete()
               Created(Json.toJson(image))
             case None => Conflict
           }
@@ -64,11 +65,7 @@ class ImageController @Inject() (
         .getOrElse(
           Redirect(routes.HomeController.index())
         )
-      // Upload the image to minio and delete the temporary file
-      Thread.sleep(2000)
-      minioService
-        .upload("images", imageId.toString, imagePath)
-      Paths.get(imagePath).toFile.delete()
+
       Ok("Image created")
     }
   }
@@ -142,8 +139,13 @@ class ImageController @Inject() (
 
   def delete(id: Long): Action[AnyContent] = Action.async {
     imageService.delete(id).map {
-      case Some(_) => NoContent
-      case None    => NotFound
+      case Some(_) =>
+        minioService.remove("images", id.toString).map {
+          case Some(_) => NoContent
+          case None    => NotFound
+        }
+        NoContent
+      case None => NotFound
     }
   }
 }
