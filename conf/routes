@@ -126,6 +126,7 @@ GET     /api/v1/comments/:id        controllers.CommentController.getById(id: Lo
 ###
 GET     /api/v1/comments/author/:authorId        controllers.CommentController.getByAuthorId(authorId: Long)
 
+GET     /api/v1/comments/imageId/:imageId       controllers.CommentController.getByImageId(imageId: Long)
 ###
 #   requestBody:
 #     content:
@@ -140,6 +141,10 @@ GET     /api/v1/comments/author/:authorId        controllers.CommentController.g
 ###
 POST    /api/v1/comments            controllers.CommentController.create
 
+PATCH    /api/v1/comments/:id/content        controllers.CommentController.updateContent(id: Long)
+
+PATCH    /api/v1/comments/:id/likeCount       controllers.CommentController.updateLikeCount(id: Long)
+
 ###
 #   responses:
 #     204:
@@ -149,8 +154,7 @@ POST    /api/v1/comments            controllers.CommentController.create
 ###
 DELETE  /api/v1/comments/:id        controllers.CommentController.delete(id: Long)
 
-PATCH    /api/v1/comments/:id/content        controllers.CommentController.updateContent(id: Long)
-PATCH    /api/v1/comments/:id/likeCount       controllers.CommentController.updateLikeCount(id: Long)
+DELETE      /api/v1/comments/imageId/:imageId    controllers.CommentController.deleteByImageId(imageId: Long)
 
 # Map static resources from the /public folder to the /assets URL path
 ### NoDocs ###

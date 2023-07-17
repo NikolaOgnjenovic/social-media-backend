@@ -43,6 +43,13 @@ class CommentController @Inject() (
     }
   }
 
+  def getByImageId(imageId: Long): Action[AnyContent] = Action.async {
+    commentService.getByImageId(imageId).map {
+      case Some(comment) => Ok(Json.toJson(comment))
+      case None          => NotFound(s"Comment with image id: $imageId not found")
+    }
+  }
+
   def updateContent(id: Long): Action[String] =
     Action.async(parse.json[String]) { request =>
       commentService.updateContent(id, request.body).map {
@@ -55,12 +62,19 @@ class CommentController @Inject() (
     request =>
       commentService.updateLikeCount(id, request.body).map {
         case Some(likeCount) => Ok(Json.toJson(likeCount))
-        case None        => NotFound
+        case None            => NotFound
       }
   }
 
   def delete(id: Long): Action[AnyContent] = Action.async {
     commentService.delete(id).map {
+      case Some(_) => NoContent
+      case None    => NotFound
+    }
+  }
+
+  def deleteByImageId(imageId: Long): Action[AnyContent] = Action.async {
+    commentService.deleteCommentsByImageId(imageId).map {
       case Some(_) => NoContent
       case None    => NotFound
     }

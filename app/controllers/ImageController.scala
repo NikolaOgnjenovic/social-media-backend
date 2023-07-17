@@ -17,8 +17,7 @@ import play.api.mvc.{
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
-import services.ImageService
-import services.MinioService
+import services.{CommentService, ImageService, MinioService}
 
 import java.nio.file.Paths
 
@@ -26,7 +25,8 @@ import java.nio.file.Paths
 class ImageController @Inject() (
     val controllerComponents: ControllerComponents,
     imageService: ImageService,
-    minioService: MinioService
+    minioService: MinioService,
+    commentService: CommentService
 )(implicit ec: ExecutionContext)
     extends BaseController {
   def create: Action[MultipartFormData[Files.TemporaryFile]] = {
@@ -141,8 +141,12 @@ class ImageController @Inject() (
     imageService.delete(id).map {
       case Some(_) =>
         minioService.remove("images", id.toString).map {
-          case Some(_) => NoContent
-          case None    => NotFound
+          case Some(_) =>
+            commentService.deleteCommentsByImageId(id).map {
+              case Some(_) => NoContent
+              case None    => NotFound
+            }
+          case None => NotFound
         }
         NoContent
       case None => NotFound

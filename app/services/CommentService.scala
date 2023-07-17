@@ -16,10 +16,16 @@ class CommentService @Inject() (commentRepository: CommentRepository) {
   def getByAuthorId(authorId: Long): Future[Option[Comment]] =
     commentRepository.getByAuthorId(authorId)
 
+  def getByImageId(imageId: Long): Future[Option[Comment]] =
+    commentRepository.getByImageId(imageId)
+
   def updateContent(id: Long, content: String): Future[Option[String]] =
     commentRepository.updateContent(id, content)
 
   def updateLikeCount(id: Long, likeCount: Int): Future[Option[Int]] =
     commentRepository.updateLikeCount(id, likeCount)
   def delete(id: Long): Future[Option[Int]] = commentRepository.delete(id)
+
+  def deleteCommentsByImageId(imageId: Long): Future[Option[Int]] =
+    commentRepository.deleteByImageId(imageId)
 }

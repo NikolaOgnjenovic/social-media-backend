@@ -40,13 +40,8 @@ class CommentRepository @Inject() (
     db.run(comments.filter(_.authorId === authorId).result).map(_.headOption)
   }
 
-  def delete(id: Long): Future[Option[Int]] = {
-    db.run(comments.filter(_.id === id).delete)
-      .map {
-        case 0       => None
-        case 1       => Some(1)
-        case deleted => throw new RuntimeException(s"Deleted $deleted rows")
-      }
+  def getByImageId(imageId: Long): Future[Option[Comment]] = {
+    db.run(comments.filter(_.imageId === imageId).result).map(_.headOption)
   }
 
   def updateContent(id: Long, content: String): Future[Option[String]] = {
@@ -75,6 +70,24 @@ class CommentRepository @Inject() (
           case updated => throw new RuntimeException(s"Updated $updated rows")
         }
     )
+  }
+
+  def delete(id: Long): Future[Option[Int]] = {
+    db.run(comments.filter(_.id === id).delete)
+      .map {
+        case 0       => None
+        case 1       => Some(1)
+        case deleted => throw new RuntimeException(s"Deleted $deleted rows")
+      }
+  }
+
+  def deleteByImageId(imageId: Long): Future[Option[Int]] = {
+    db.run(comments.filter(_.imageId === imageId).delete)
+      .map {
+        case 0       => None
+        case 1       => Some(1)
+        case deleted => throw new RuntimeException(s"Deleted $deleted rows")
+      }
   }
 
   private class CommentTable(tag: Tag) extends Table[Comment](tag, "comments") {
