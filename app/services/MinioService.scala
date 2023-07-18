@@ -1,17 +1,22 @@
 package services
 
+import akka.pattern.StatusReply.Success
 import com.google.inject.Inject
+import com.sun.net.httpserver.Authenticator.Failure
 import io.minio.{
   BucketExistsArgs,
   GetObjectArgs,
   MakeBucketArgs,
   MinioClient,
+  ObjectWriteResponse,
   RemoveObjectArgs,
   UploadObjectArgs
 }
 
 import java.io.ByteArrayOutputStream
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
+
 class MinioService @Inject() (implicit ec: ExecutionContext) {
   private val minioClient = MinioClient
     .builder()
@@ -26,7 +31,7 @@ class MinioService @Inject() (implicit ec: ExecutionContext) {
       bucketName: String,
       id: String,
       filename: String
-  ): Unit = {
+  ): ObjectWriteResponse = {
     // Create a bucket if it does not exist
     if (
       !minioClient.bucketExists(
@@ -34,10 +39,7 @@ class MinioService @Inject() (implicit ec: ExecutionContext) {
       )
     ) {
       minioClient.makeBucket(
-        MakeBucketArgs
-          .builder()
-          .bucket(bucketName)
-          .build()
+        MakeBucketArgs.builder().bucket(bucketName).build()
       )
     }
 
@@ -53,7 +55,7 @@ class MinioService @Inject() (implicit ec: ExecutionContext) {
   }
 
   def get(bucketName: String, id: String): Future[Option[Array[Byte]]] = {
-    val objectData: Future[Option[Array[Byte]]] = Future {
+    Future {
       try {
         // Get a GetObjectResponse from minio
         val objectData = minioClient
@@ -82,8 +84,6 @@ class MinioService @Inject() (implicit ec: ExecutionContext) {
         case _: io.minio.errors.MinioException | _: java.io.IOException => None
       }
     }
-
-    objectData
   }
 
   def remove(bucketName: String, id: String): Future[Option[Int]] = {

@@ -21,7 +21,7 @@ class CommentRepository @Inject() (
     db.run(comments.schema.createIfNotExists)
   }
 
-  def insert(comment: Comment): Future[Option[Comment]] =
+  def create(comment: Comment): Future[Option[Comment]] =
     db.run((comments returning comments) += comment)
       .map(Some.apply[Comment])
       // Throw a PSQLException if the query fails

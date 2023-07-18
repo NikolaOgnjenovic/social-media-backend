@@ -22,7 +22,7 @@ class ImageRepository @Inject() (
     db.run(images.schema.createIfNotExists)
   }
 
-  def insert(image: Image): Future[Option[Image]] =
+  def create(image: Image): Future[Option[Image]] =
     db.run((images returning images) += image)
       .map(Some.apply[Image])
       // Throw a PSQLException if the query fails

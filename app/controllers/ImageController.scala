@@ -14,19 +14,25 @@ import play.api.mvc.{
   ControllerComponents,
   MultipartFormData
 }
+import repositories.CommentRepository
+import repositories.ImageRepository
+
+// TODO: endpoint za register, generisi token na uspesan login, cuvam token na frontu nakon ulogovanja
+//  u token body stavi user id
+//  u svaki sledeci request dodajem token u header
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
-import services.{CommentService, ImageService, MinioService}
+import services.MinioService
 
 import java.nio.file.Paths
 
 @Singleton
 class ImageController @Inject() (
     val controllerComponents: ControllerComponents,
-    imageService: ImageService,
+    imageRepository: ImageRepository,
     minioService: MinioService,
-    commentService: CommentService
+    commentRepository: CommentRepository
 )(implicit ec: ExecutionContext)
     extends BaseController {
   def create: Action[MultipartFormData[Files.TemporaryFile]] = {
@@ -51,7 +57,7 @@ class ImageController @Inject() (
             imagePath
           )
 
-          imageService.create(imageToAdd).map {
+          imageRepository.create(imageToAdd).map {
             case Some(image) =>
               // Upload the image to minio and delete the temporary file
               minioService
@@ -71,18 +77,18 @@ class ImageController @Inject() (
   }
 
   def getAll: Action[AnyContent] = Action.async {
-    imageService.getAll.map(images => Ok(Json.toJson(images)))
+    imageRepository.getAll.map(images => Ok(Json.toJson(images)))
   }
 
   def getById(id: Long): Action[AnyContent] = Action.async {
-    imageService.getById(id).map {
+    imageRepository.getById(id).map {
       case Some(image) => Ok(Json.toJson(image))
       case None        => NotFound(s"Image with id: $id not found")
     }
   }
 
   def getImageFileById(id: Long): Action[AnyContent] = Action.async {
-    imageService.getImageFileById(id).map {
+    minioService.get("images", id.toString).map {
       case Some(image) =>
         Ok.chunked(
           StreamConverters
@@ -94,20 +100,22 @@ class ImageController @Inject() (
 
   def getByTags(tags: String): Action[AnyContent] = Action.async {
     val tagList = tags.split(",").toList
-    imageService.getByTags(tagList).map(images => Ok(Json.toJson(images)))
+    imageRepository.getByTags(tagList).map(images => Ok(Json.toJson(images)))
   }
 
   def getByTitle(title: String): Action[AnyContent] = Action.async {
-    imageService.getByTitle(title).map(images => Ok(Json.toJson(images)))
+    imageRepository.getByTitle(title).map(images => Ok(Json.toJson(images)))
   }
 
   def getByFolderId(folderId: Long): Action[AnyContent] = Action.async {
-    imageService.getByFolderId(folderId).map(images => Ok(Json.toJson(images)))
+    imageRepository
+      .getByFolderId(folderId)
+      .map(images => Ok(Json.toJson(images)))
   }
 
   def updateTags(id: Long): Action[List[String]] =
     Action.async(parse.json[List[String]]) { request =>
-      imageService.updateTags(id, request.body).map {
+      imageRepository.updateTags(id, request.body).map {
         case Some(tags) => Ok(Json.toJson(tags))
         case None       => NotFound
       }
@@ -115,7 +123,7 @@ class ImageController @Inject() (
 
   def updateLikeCount(id: Long): Action[Int] =
     Action.async(parse.json[Int]) { request =>
-      imageService.updateLikeCount(id, request.body).map {
+      imageRepository.updateLikeCount(id, request.body).map {
         case Some(likeCount) => Ok(Json.toJson(likeCount))
         case None            => NotFound
       }
@@ -123,7 +131,7 @@ class ImageController @Inject() (
 
   def updateEditorIds(id: Long): Action[List[Long]] =
     Action.async(parse.json[List[Long]]) { request =>
-      imageService.updateEditorIds(id, request.body).map {
+      imageRepository.updateEditorIds(id, request.body).map {
         case Some(editorIds) => Ok(Json.toJson(editorIds))
         case None            => NotFound
       }
@@ -131,18 +139,18 @@ class ImageController @Inject() (
 
   def updateFolderId(id: Long): Action[Long] =
     Action.async(parse.json[Long]) { request =>
-      imageService.updateFolderId(id, request.body).map {
+      imageRepository.updateFolderId(id, request.body).map {
         case Some(folderId) => Ok(Json.toJson(folderId))
         case None           => NotFound
       }
     }
 
   def delete(id: Long): Action[AnyContent] = Action.async {
-    imageService.delete(id).map {
+    imageRepository.delete(id).map {
       case Some(_) =>
         minioService.remove("images", id.toString).map {
           case Some(_) =>
-            commentService.deleteCommentsByImageId(id).map {
+            commentRepository.deleteByImageId(id).map {
               case Some(_) => NoContent
               case None    => NotFound
             }

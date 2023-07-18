@@ -157,5 +157,12 @@ DELETE  /api/v1/comments/:id        controllers.CommentController.delete(id: Lon
 DELETE      /api/v1/comments/imageId/:imageId    controllers.CommentController.deleteByImageId(imageId: Long)
 
 # Map static resources from the /public folder to the /assets URL path
+
+POST /api/v1/users  controllers.UserController.create()
+GET /api/v1/users   controllers.UserController.getAll()
+GET /api/v1/users/:id   controllers.UserController.getById(id: Long)
+PATCH /api/v1/users/:id/password controllers.UserController.updatePassword(id: Long)
+DELETE /api/v1/users/:id    controllers.UserController.delete(id: Long)
+
 ### NoDocs ###
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

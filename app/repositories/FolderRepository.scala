@@ -22,7 +22,7 @@ class FolderRepository @Inject() (
     db.run(folders.schema.createIfNotExists)
   }
 
-  def insert(folder: Folder): Future[Option[Folder]] =
+  def create(folder: Folder): Future[Option[Folder]] =
     db.run((folders returning folders) += folder)
       .map(Some.apply[Folder])
       // Throw a PSQLException if the query fails
