@@ -30,7 +30,8 @@ class FolderRepository @Inject() (
         None
       }
 
-  def getAll(userId: Long): Future[Seq[Folder]] =
+  def getAll: Future[Seq[Folder]] = db.run(folders.result)
+  def getAllByUserId(userId: Long): Future[Seq[Folder]] =
     db.run(folders.filter(_.authorId === userId).result)
 
   def getById(id: Long): Future[Option[Folder]] = {
@@ -73,7 +74,6 @@ class FolderRepository @Inject() (
 
   private class FolderTable(tag: Tag) extends Table[Folder](tag, "folders") {
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
-
     def authorId = column[Long]("author_id")
     def title = column[String]("title")
 

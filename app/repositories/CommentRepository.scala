@@ -29,7 +29,8 @@ class CommentRepository @Inject() (
         None
       }
 
-  def getAll(userId: Long): Future[Seq[Comment]] =
+  def getAll: Future[Seq[Comment]] = db.run(comments.result)
+  def getAllByUserId(userId: Long): Future[Seq[Comment]] =
     db.run(comments.filter(_.authorId === userId).result)
 
   def getById(id: Long): Future[Option[Comment]] = {
@@ -64,13 +65,12 @@ class CommentRepository @Inject() (
   }
 
   def updateLikeCount(
-      userId: Long,
       id: Long,
       likeCount: Int
   ): Future[Option[Int]] = {
     db.run(
       comments
-        .filter(comment => comment.authorId === userId && comment.id === id)
+        .filter(_.id === id)
         .map(_.likeCount)
         .update(likeCount)
         .map {

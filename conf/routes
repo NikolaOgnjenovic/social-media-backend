@@ -14,6 +14,7 @@ POST    /api/v1/images            controllers.ImageController.create
 GET     /api/v1/images            controllers.ImageController.getAll
 ### NoDocs ###
 GET     /api/v1/images/:id        controllers.ImageController.getById(id: Long)
+### NoDocs ###
 GET     /api/v1/images/:id/file     controllers.ImageController.getImageFileById(id: Long)
 ### NoDocs ###
 GET     /api/v1/images/tags/:tags       controllers.ImageController.getByTags(tags: String)
@@ -71,9 +72,6 @@ GET     /api/v1/folders/:id        controllers.FolderController.getById(id: Long
 #       description: Folder with specified author ID was not found
 ###
 GET     /api/v1/folders/author/:authorId        controllers.FolderController.getByAuthorId(authorId: Long)
-
-
-
 
 ###
 #   responses:
@@ -161,7 +159,7 @@ DELETE      /api/v1/comments/imageId/:imageId    controllers.CommentController.d
 POST /api/v1/users  controllers.UserController.create()
 GET /api/v1/users   controllers.UserController.getAll()
 GET /api/v1/users/:id   controllers.UserController.getById(id: Long)
-GET /api/v1/login controllers.UserController.login()
+POST /api/v1/login controllers.UserController.login()
 PATCH /api/v1/users/:id/password controllers.UserController.updatePassword(id: Long)
 DELETE /api/v1/users/:id    controllers.UserController.delete(id: Long)
 

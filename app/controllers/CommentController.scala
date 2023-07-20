@@ -27,10 +27,13 @@ class CommentController @Inject() (
       }
     }
 
-  def getAll: Action[AnyContent] = jwtAction.async { request =>
+  def getAll: Action[AnyContent] = Action.async {
+    commentRepository.getAll.map(comments => Ok(Json.toJson(comments)))
+  }
+  def getAllByUserId: Action[AnyContent] = jwtAction.async { request =>
     commentRepository
-      .getAll(request.userId)
-      .map(images => Ok(Json.toJson(images)))
+      .getAllByUserId(request.userId)
+      .map(comments => Ok(Json.toJson(comments)))
   }
 
   def getById(id: Long): Action[AnyContent] = Action.async {
@@ -63,8 +66,8 @@ class CommentController @Inject() (
     }
 
   def updateLikeCount(id: Long): Action[Int] =
-    jwtAction.async(parse.json[Int]) { request =>
-      commentRepository.updateLikeCount(request.userId, id, request.body).map {
+    Action.async(parse.json[Int]) { request =>
+      commentRepository.updateLikeCount(id, request.body).map {
         case Some(likeCount) => Ok(Json.toJson(likeCount))
         case None            => NotFound
       }

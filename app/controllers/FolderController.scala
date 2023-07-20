@@ -26,9 +26,13 @@ class FolderController @Inject() (
       }
     }
 
-  def getAll: Action[AnyContent] = jwtAction.async { request =>
+  def getAll: Action[AnyContent] = Action.async {
+    folderRepository.getAll.map(images => Ok(Json.toJson(images)))
+  }
+
+  def getAllByUserId: Action[AnyContent] = jwtAction.async { request =>
     folderRepository
-      .getAll(request.userId)
+      .getAllByUserId(request.userId)
       .map(images => Ok(Json.toJson(images)))
   }
 

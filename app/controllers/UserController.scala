@@ -25,8 +25,14 @@ class UserController @Inject() (
     Action.async(parse.json[NewUser]) { request =>
       val user: User = request.body
       userRepository.create(user).map {
-        case Some(u) => Created(Json.toJson(jwtService.generateToken(u.id)))
-        case None    => Conflict
+        case Some(u) =>
+          val token = jwtService.generateToken(u.id)
+          val jsonResponse = Json.obj(
+            "userId" -> u.id,
+            "token" -> token
+          )
+          Created(jsonResponse)
+        case None => Conflict
       }
     }
   }
@@ -36,7 +42,12 @@ class UserController @Inject() (
       val user: User = request.body
       userRepository.login(user).map {
         case Some(u) =>
-          Ok(Json.toJson(jwtService.generateToken(u.id)))
+          val token = jwtService.generateToken(u.id)
+          val jsonResponse = Json.obj(
+            "userId" -> u.id,
+            "token" -> token
+          )
+          Ok(jsonResponse)
         case None => Conflict
       }
     }

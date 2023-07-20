@@ -78,9 +78,13 @@ class ImageController @Inject() (
     }
   }
 
-  def getAll: Action[AnyContent] = jwtAction.async { request =>
+  def getAll: Action[AnyContent] = Action.async {
+    imageRepository.getAll.map(images => Ok(Json.toJson(images)))
+
+  }
+  def getAllByUserId: Action[AnyContent] = jwtAction.async { request =>
     imageRepository
-      .getAll(request.userId)
+      .getAllByUserId(request.userId)
       .map(images => Ok(Json.toJson(images)))
   }
 
@@ -128,7 +132,7 @@ class ImageController @Inject() (
 
   def updateLikeCount(id: Long): Action[Int] =
     jwtAction.async(parse.json[Int]) { request =>
-      imageRepository.updateLikeCount(request.userId, id, request.body).map {
+      imageRepository.updateLikeCount(id, request.body).map {
         case Some(likeCount) => Ok(Json.toJson(likeCount))
         case None            => NotFound
       }

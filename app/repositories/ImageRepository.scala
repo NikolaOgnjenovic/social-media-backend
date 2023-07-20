@@ -23,7 +23,6 @@ class ImageRepository @Inject() (
   }
 
   def create(image: Image): Future[Option[Image]] = {
-    createTable()
     db.run((images returning images) += image)
       .map(Some.apply[Image])
       // Throw a PSQLException if the query fails
@@ -32,7 +31,8 @@ class ImageRepository @Inject() (
       }
   }
 
-  def getAll(userId: Long): Future[Seq[Image]] =
+  def getAll: Future[Seq[Image]] = db.run(images.result)
+  def getAllByUserId(userId: Long): Future[Seq[Image]] =
     db.run(images.filter(_.authorId === userId).result)
 
   def getById(id: Long): Future[Option[Image]] = {
@@ -70,13 +70,12 @@ class ImageRepository @Inject() (
     )
   }
   def updateLikeCount(
-      userId: Long,
       id: Long,
       likeCount: Int
   ): Future[Option[Int]] = {
     db.run(
       images
-        .filter(image => image.authorId === userId && image.id === id)
+        .filter(_.id === id)
         .map(_.likeCount)
         .update(likeCount)
         .map {
