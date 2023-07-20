@@ -30,6 +30,15 @@ class UserRepository @Inject() (
         None
       }
 
+  def login(user: User): Future[Option[User]] = db
+    .run(
+      users
+        .filter(u =>
+          u.username === user.username && u.password === user.password
+        )
+        .result
+    )
+    .map(_.headOption)
   def getAll: Future[Seq[User]] = db.run(users.result)
 
   def getById(id: Long): Future[Option[User]] = {

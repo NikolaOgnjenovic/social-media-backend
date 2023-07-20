@@ -68,7 +68,7 @@ class MinioService @Inject() (implicit ec: ExecutionContext) {
         val buffer = new Array[Byte](8192) // Buffer size for reading data
         var bytesRead = -1
         while ({
-          bytesRead = objectData.read(buffer);
+          bytesRead = objectData.read(buffer)
           bytesRead
         } != -1) {
           byteArrayOutputStream.write(buffer, 0, bytesRead)

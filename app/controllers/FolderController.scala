@@ -1,5 +1,6 @@
 package controllers
 
+import auth.JwtAction
 import dtos.NewFolder
 import models.Folder
 import play.api.libs.json.Json
@@ -8,11 +9,11 @@ import repositories.FolderRepository
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
-
 @Singleton
 class FolderController @Inject() (
     val controllerComponents: ControllerComponents,
-    folderRepository: FolderRepository
+    folderRepository: FolderRepository,
+    jwtAction: JwtAction
 )(implicit ec: ExecutionContext)
     extends BaseController {
   def create: Action[NewFolder] =
@@ -25,8 +26,10 @@ class FolderController @Inject() (
       }
     }
 
-  def getAll: Action[AnyContent] = Action.async {
-    folderRepository.getAll.map(images => Ok(Json.toJson(images)))
+  def getAll: Action[AnyContent] = jwtAction.async { request =>
+    folderRepository
+      .getAll(request.userId)
+      .map(images => Ok(Json.toJson(images)))
   }
 
   def getById(id: Long): Action[AnyContent] = Action.async {
@@ -43,16 +46,16 @@ class FolderController @Inject() (
     }
   }
 
-  def updateTitle(id: Long): Action[String] = Action.async(parse.json[String]) {
-    request =>
-      folderRepository.updateTitle(id, request.body).map {
+  def updateTitle(id: Long): Action[String] =
+    jwtAction.async(parse.json[String]) { request =>
+      folderRepository.updateTitle(request.userId, id, request.body).map {
         case Some(title) => Ok(Json.toJson(title))
         case None        => NotFound
       }
-  }
+    }
 
-  def delete(id: Long): Action[AnyContent] = Action.async {
-    folderRepository.delete(id).map {
+  def delete(id: Long): Action[AnyContent] = jwtAction.async { request =>
+    folderRepository.delete(request.userId, id).map {
       case Some(_) => NoContent
       case None    => NotFound
     }

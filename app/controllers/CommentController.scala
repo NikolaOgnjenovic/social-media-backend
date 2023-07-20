@@ -1,5 +1,6 @@
 package controllers
 
+import auth.JwtAction
 import dtos.NewComment
 import models.Comment
 import play.api.libs.json.Json
@@ -7,12 +8,13 @@ import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import repositories.CommentRepository
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class CommentController @Inject() (
     val controllerComponents: ControllerComponents,
-    commentRepository: CommentRepository
+    commentRepository: CommentRepository,
+    jwtAction: JwtAction
 )(implicit ec: ExecutionContext)
     extends BaseController {
   def create: Action[NewComment] =
@@ -25,8 +27,10 @@ class CommentController @Inject() (
       }
     }
 
-  def getAll: Action[AnyContent] = Action.async {
-    commentRepository.getAll.map(images => Ok(Json.toJson(images)))
+  def getAll: Action[AnyContent] = jwtAction.async { request =>
+    commentRepository
+      .getAll(request.userId)
+      .map(images => Ok(Json.toJson(images)))
   }
 
   def getById(id: Long): Action[AnyContent] = Action.async {
@@ -51,23 +55,23 @@ class CommentController @Inject() (
   }
 
   def updateContent(id: Long): Action[String] =
-    Action.async(parse.json[String]) { request =>
-      commentRepository.updateContent(id, request.body).map {
+    jwtAction.async(parse.json[String]) { request =>
+      commentRepository.updateContent(request.userId, id, request.body).map {
         case Some(content) => Ok(Json.toJson(content))
         case None          => NotFound
       }
     }
 
-  def updateLikeCount(id: Long): Action[Int] = Action.async(parse.json[Int]) {
-    request =>
-      commentRepository.updateLikeCount(id, request.body).map {
+  def updateLikeCount(id: Long): Action[Int] =
+    jwtAction.async(parse.json[Int]) { request =>
+      commentRepository.updateLikeCount(request.userId, id, request.body).map {
         case Some(likeCount) => Ok(Json.toJson(likeCount))
         case None            => NotFound
       }
-  }
+    }
 
-  def delete(id: Long): Action[AnyContent] = Action.async {
-    commentRepository.delete(id).map {
+  def delete(id: Long): Action[AnyContent] = jwtAction.async { request =>
+    commentRepository.delete(request.userId, id).map {
       case Some(_) => NoContent
       case None    => NotFound
     }

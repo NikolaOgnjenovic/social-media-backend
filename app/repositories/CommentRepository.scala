@@ -25,11 +25,12 @@ class CommentRepository @Inject() (
     db.run((comments returning comments) += comment)
       .map(Some.apply[Comment])
       // Throw a PSQLException if the query fails
-      .recover { case e: PSQLException =>
+      .recover { case _: PSQLException =>
         None
       }
 
-  def getAll: Future[Seq[Comment]] = db.run(comments.result)
+  def getAll(userId: Long): Future[Seq[Comment]] =
+    db.run(comments.filter(_.authorId === userId).result)
 
   def getById(id: Long): Future[Option[Comment]] = {
     // Filter all comments and return the one with the given id
@@ -44,10 +45,14 @@ class CommentRepository @Inject() (
     db.run(comments.filter(_.imageId === imageId).result).map(_.headOption)
   }
 
-  def updateContent(id: Long, content: String): Future[Option[String]] = {
+  def updateContent(
+      userId: Long,
+      id: Long,
+      content: String
+  ): Future[Option[String]] = {
     db.run(
       comments
-        .filter(comment => comment.id === id)
+        .filter(comment => comment.authorId === userId && comment.id === id)
         .map(_.content)
         .update(content)
         .map {
@@ -58,10 +63,14 @@ class CommentRepository @Inject() (
     )
   }
 
-  def updateLikeCount(id: Long, likeCount: Int): Future[Option[Int]] = {
+  def updateLikeCount(
+      userId: Long,
+      id: Long,
+      likeCount: Int
+  ): Future[Option[Int]] = {
     db.run(
       comments
-        .filter(comment => comment.id === id)
+        .filter(comment => comment.authorId === userId && comment.id === id)
         .map(_.likeCount)
         .update(likeCount)
         .map {
@@ -72,13 +81,16 @@ class CommentRepository @Inject() (
     )
   }
 
-  def delete(id: Long): Future[Option[Int]] = {
-    db.run(comments.filter(_.id === id).delete)
-      .map {
-        case 0       => None
-        case 1       => Some(1)
-        case deleted => throw new RuntimeException(s"Deleted $deleted rows")
-      }
+  def delete(userId: Long, id: Long): Future[Option[Int]] = {
+    db.run(
+      comments
+        .filter(comment => comment.authorId === userId && comment.id === id)
+        .delete
+    ).map {
+      case 0       => None
+      case 1       => Some(1)
+      case deleted => throw new RuntimeException(s"Deleted $deleted rows")
+    }
   }
 
   def deleteByImageId(imageId: Long): Future[Option[Int]] = {

@@ -30,7 +30,8 @@ class FolderRepository @Inject() (
         None
       }
 
-  def getAll: Future[Seq[Folder]] = db.run(folders.result)
+  def getAll(userId: Long): Future[Seq[Folder]] =
+    db.run(folders.filter(_.authorId === userId).result)
 
   def getById(id: Long): Future[Option[Folder]] = {
     // Filter all folders and return the one with the given id
@@ -41,22 +42,32 @@ class FolderRepository @Inject() (
     db.run(folders.filter(_.authorId === authorId).result).map(_.headOption)
   }
 
-  def delete(id: Long): Future[Option[Int]] = {
-    db.run(folders.filter(_.id === id).delete)
-      .map {
-        case 0       => None
-        case 1       => Some(1)
-        case deleted => throw new RuntimeException(s"Deleted $deleted rows")
-      }
-  }
-
-  def updateTitle(id: Long, title: String): Future[Option[String]] = {
+  def updateTitle(
+      userId: Long,
+      id: Long,
+      title: String
+  ): Future[Option[String]] = {
     db.run(
-      folders.filter(folder => folder.id === id).map(_.title).update(title)
+      folders
+        .filter(folder => folder.authorId === userId && folder.id === id)
+        .map(_.title)
+        .update(title)
     ).map {
       case 0       => None
       case 1       => Some(title)
       case updated => throw new RuntimeException(s"Updated $updated rows")
+    }
+  }
+
+  def delete(userId: Long, id: Long): Future[Option[Int]] = {
+    db.run(
+      folders
+        .filter(folder => folder.authorId === userId && folder.id === id)
+        .delete
+    ).map {
+      case 0       => None
+      case 1       => Some(1)
+      case deleted => throw new RuntimeException(s"Deleted $deleted rows")
     }
   }
 

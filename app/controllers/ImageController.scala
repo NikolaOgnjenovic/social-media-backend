@@ -1,6 +1,7 @@
 package controllers
 
 import akka.stream.scaladsl.StreamConverters
+import auth.JwtAction
 import dtos.NewImage
 import models.Image
 import play.api.libs.Files
@@ -17,7 +18,7 @@ import play.api.mvc.{
 import repositories.CommentRepository
 import repositories.ImageRepository
 
-// TODO: endpoint za register, generisi token na uspesan login, cuvam token na frontu nakon ulogovanja
+//  TODO: endpoint za register, generisi token na uspesan login, cuvam token na frontu nakon ulogovanja
 //  u token body stavi user id
 //  u svaki sledeci request dodajem token u header
 
@@ -32,7 +33,8 @@ class ImageController @Inject() (
     val controllerComponents: ControllerComponents,
     imageRepository: ImageRepository,
     minioService: MinioService,
-    commentRepository: CommentRepository
+    commentRepository: CommentRepository,
+    jwtAction: JwtAction
 )(implicit ec: ExecutionContext)
     extends BaseController {
   def create: Action[MultipartFormData[Files.TemporaryFile]] = {
@@ -76,10 +78,13 @@ class ImageController @Inject() (
     }
   }
 
-  def getAll: Action[AnyContent] = Action.async {
-    imageRepository.getAll.map(images => Ok(Json.toJson(images)))
+  def getAll: Action[AnyContent] = jwtAction.async { request =>
+    imageRepository
+      .getAll(request.userId)
+      .map(images => Ok(Json.toJson(images)))
   }
 
+  // TODO: Add friends / editors so that not everyone can see all images
   def getById(id: Long): Action[AnyContent] = Action.async {
     imageRepository.getById(id).map {
       case Some(image) => Ok(Json.toJson(image))
@@ -114,39 +119,39 @@ class ImageController @Inject() (
   }
 
   def updateTags(id: Long): Action[List[String]] =
-    Action.async(parse.json[List[String]]) { request =>
-      imageRepository.updateTags(id, request.body).map {
+    jwtAction.async(parse.json[List[String]]) { request =>
+      imageRepository.updateTags(request.userId, id, request.body).map {
         case Some(tags) => Ok(Json.toJson(tags))
         case None       => NotFound
       }
     }
 
   def updateLikeCount(id: Long): Action[Int] =
-    Action.async(parse.json[Int]) { request =>
-      imageRepository.updateLikeCount(id, request.body).map {
+    jwtAction.async(parse.json[Int]) { request =>
+      imageRepository.updateLikeCount(request.userId, id, request.body).map {
         case Some(likeCount) => Ok(Json.toJson(likeCount))
         case None            => NotFound
       }
     }
 
   def updateEditorIds(id: Long): Action[List[Long]] =
-    Action.async(parse.json[List[Long]]) { request =>
-      imageRepository.updateEditorIds(id, request.body).map {
+    jwtAction.async(parse.json[List[Long]]) { request =>
+      imageRepository.updateEditorIds(request.userId, id, request.body).map {
         case Some(editorIds) => Ok(Json.toJson(editorIds))
         case None            => NotFound
       }
     }
 
   def updateFolderId(id: Long): Action[Long] =
-    Action.async(parse.json[Long]) { request =>
-      imageRepository.updateFolderId(id, request.body).map {
+    jwtAction.async(parse.json[Long]) { request =>
+      imageRepository.updateFolderId(request.userId, id, request.body).map {
         case Some(folderId) => Ok(Json.toJson(folderId))
         case None           => NotFound
       }
     }
 
-  def delete(id: Long): Action[AnyContent] = Action.async {
-    imageRepository.delete(id).map {
+  def delete(id: Long): Action[AnyContent] = jwtAction.async { request =>
+    imageRepository.delete(request.userId, id).map {
       case Some(_) =>
         minioService.remove("images", id.toString).map {
           case Some(_) =>

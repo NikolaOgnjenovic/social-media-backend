@@ -6,8 +6,6 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala, SwaggerPlugin)
 
 scalaVersion := "2.13.11"
 swaggerDomainNameSpaces := Seq("models")
-//libraryDependencies += guice
-//libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test
 
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "Nikola.controllers._"
@@ -33,5 +31,10 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.3.0",
   // Minio
   "io.minio" % "minio" % "8.3.7", // This old version uses jackson 11 which fits scala version 2.13?
-  "commons-io" % "commons-io" % "20030203.000550"
+  "commons-io" % "commons-io" % "20030203.000550",
+  //Auth
+  "com.github.jwt-scala" %% "jwt-play-json" % "9.4.3"
 )
+
+dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.11.4"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.11.1"

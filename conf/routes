@@ -161,6 +161,7 @@ DELETE      /api/v1/comments/imageId/:imageId    controllers.CommentController.d
 POST /api/v1/users  controllers.UserController.create()
 GET /api/v1/users   controllers.UserController.getAll()
 GET /api/v1/users/:id   controllers.UserController.getById(id: Long)
+GET /api/v1/login controllers.UserController.login()
 PATCH /api/v1/users/:id/password controllers.UserController.updatePassword(id: Long)
 DELETE /api/v1/users/:id    controllers.UserController.delete(id: Long)
 

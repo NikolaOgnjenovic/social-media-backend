@@ -1,10 +1,13 @@
 package controllers
 
+import auth.JwtAction
 import dtos.NewUser
 import models.User
+import play.api.Configuration
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import repositories.UserRepository
+import services.JwtService
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -12,19 +15,34 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class UserController @Inject() (
     val controllerComponents: ControllerComponents,
-    userRepository: UserRepository
-)(implicit ec: ExecutionContext)
-    extends BaseController {
-  def create: Action[NewUser] =
+    userRepository: UserRepository,
+    jwtService: JwtService
+)(
+    implicit ec: ExecutionContext,
+    implicit val conf: Configuration
+) extends BaseController {
+  def create: Action[NewUser] = {
     Action.async(parse.json[NewUser]) { request =>
       val user: User = request.body
-
       userRepository.create(user).map {
-        case Some(user) => Created(Json.toJson(user))
-        case None       => Conflict
+        case Some(u) => Created(Json.toJson(jwtService.generateToken(u.id)))
+        case None    => Conflict
       }
     }
+  }
 
+  def login: Action[NewUser] = {
+    Action.async(parse.json[NewUser]) { request =>
+      val user: User = request.body
+      userRepository.login(user).map {
+        case Some(u) =>
+          Ok(Json.toJson(jwtService.generateToken(u.id)))
+        case None => Conflict
+      }
+    }
+  }
+
+  // TODO: Add user roles to user profiles. If admin parameter = true in token, then the user can getAll etc.
   def getAll: Action[AnyContent] = Action.async {
     userRepository.getAll.map(users => Ok(Json.toJson(users)))
   }
