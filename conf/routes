@@ -12,6 +12,9 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 POST    /api/v1/images            controllers.ImageController.create
 ### NoDocs ###
 GET     /api/v1/images            controllers.ImageController.getAll
+
+GET /api/v1/images controllers.ImageController.getAllByUserId
+
 ### NoDocs ###
 GET     /api/v1/images/:id        controllers.ImageController.getById(id: Long)
 ### NoDocs ###
@@ -51,8 +54,9 @@ POST    /api/v1/folders            controllers.FolderController.create
 #         $ref: '#/definitions/models.Folder'
 ###
 GET     /api/v1/folders            controllers.FolderController.getAll
-GET     /api/v1/images/folder/:folderId        controllers.ImageController.getByFolderId(folderId: Long)
+GET /api/v1/folders    controllers.FolderController.getAllByUserId
 
+GET     /api/v1/images/folder/:folderId        controllers.ImageController.getByFolderId(folderId: Long)
 ###
 #   responses:
 #     200:
@@ -62,7 +66,6 @@ GET     /api/v1/images/folder/:folderId        controllers.ImageController.getBy
 #       description: Folder with specified ID was not found
 ###
 GET     /api/v1/folders/:id        controllers.FolderController.getById(id: Long)
-
 ###
 #   responses:
 #     200:
@@ -103,6 +106,7 @@ PATCH     /api/v1/folders/:id/title        controllers.FolderController.updateTi
 #         $ref: '#/definitions/models.Comment'
 ###
 GET     /api/v1/comments            controllers.CommentController.getAll
+GET /api/v1/comments   controllers.CommentController.getAllByUserId
 
 ###
 #   responses:
