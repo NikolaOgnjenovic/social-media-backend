@@ -60,8 +60,8 @@ class FolderController @Inject() (
 
   def delete(id: Long): Action[AnyContent] = jwtAction.async { request =>
     folderRepository.delete(request.userId, id).map {
-      case Some(_) => NoContent
-      case None    => NotFound
+      case Some(folderId) => Accepted(Json.toJson(folderId))
+      case None           => NotFound
     }
   }
 }

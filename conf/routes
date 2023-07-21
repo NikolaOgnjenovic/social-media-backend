@@ -13,7 +13,7 @@ POST    /api/v1/images            controllers.ImageController.create
 ### NoDocs ###
 GET     /api/v1/images            controllers.ImageController.getAll
 
-GET /api/v1/images controllers.ImageController.getAllByUserId
+GET /api/v1/images/user controllers.ImageController.getAllByUserId
 
 ### NoDocs ###
 GET     /api/v1/images/:id        controllers.ImageController.getById(id: Long)
@@ -54,7 +54,7 @@ POST    /api/v1/folders            controllers.FolderController.create
 #         $ref: '#/definitions/models.Folder'
 ###
 GET     /api/v1/folders            controllers.FolderController.getAll
-GET /api/v1/folders    controllers.FolderController.getAllByUserId
+GET /api/v1/folders/user    controllers.FolderController.getAllByUserId
 
 GET     /api/v1/images/folder/:folderId        controllers.ImageController.getByFolderId(folderId: Long)
 ###
@@ -106,7 +106,7 @@ PATCH     /api/v1/folders/:id/title        controllers.FolderController.updateTi
 #         $ref: '#/definitions/models.Comment'
 ###
 GET     /api/v1/comments            controllers.CommentController.getAll
-GET /api/v1/comments   controllers.CommentController.getAllByUserId
+GET /api/v1/comments/user  controllers.CommentController.getAllByUserId
 
 ###
 #   responses:
@@ -163,7 +163,13 @@ DELETE      /api/v1/comments/imageId/:imageId    controllers.CommentController.d
 POST /api/v1/users  controllers.UserController.create()
 GET /api/v1/users   controllers.UserController.getAll()
 GET /api/v1/users/:id   controllers.UserController.getById(id: Long)
+
++nocsrf
 POST /api/v1/login controllers.UserController.login()
+
++nocsrf
+POST /api/v1/logout controllers.UserController.logout()
+
 PATCH /api/v1/users/:id/password controllers.UserController.updatePassword(id: Long)
 DELETE /api/v1/users/:id    controllers.UserController.delete(id: Long)
 

@@ -75,8 +75,8 @@ class CommentController @Inject() (
 
   def delete(id: Long): Action[AnyContent] = jwtAction.async { request =>
     commentRepository.delete(request.userId, id).map {
-      case Some(_) => NoContent
-      case None    => NotFound
+      case Some(commentId) => Accepted(Json.toJson(commentId))
+      case None            => NotFound
     }
   }
 

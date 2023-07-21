@@ -81,19 +81,19 @@ class CommentRepository @Inject() (
     )
   }
 
-  def delete(userId: Long, id: Long): Future[Option[Int]] = {
+  def delete(userId: Long, id: Long): Future[Option[Long]] = {
     db.run(
       comments
         .filter(comment => comment.authorId === userId && comment.id === id)
         .delete
     ).map {
       case 0       => None
-      case 1       => Some(1)
+      case 1       => Some(id)
       case deleted => throw new RuntimeException(s"Deleted $deleted rows")
     }
   }
 
-  def deleteByImageId(imageId: Long): Future[Option[Int]] = {
+  def deleteByImageId(imageId: Long): Future[Option[Long]] = {
     db.run(comments.filter(_.imageId === imageId).delete)
       .map {
         case 0       => None

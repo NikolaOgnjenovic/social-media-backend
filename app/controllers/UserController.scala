@@ -1,22 +1,24 @@
 package controllers
 
+import akka.pattern.StatusReply.Success
 import auth.JwtAction
 import dtos.NewUser
 import models.User
-import play.api.Configuration
+import play.api.{Configuration, Logger}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import repositories.UserRepository
 import services.JwtService
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class UserController @Inject() (
     val controllerComponents: ControllerComponents,
     userRepository: UserRepository,
-    jwtService: JwtService
+    jwtService: JwtService,
+    jwtAction: JwtAction
 )(
     implicit ec: ExecutionContext,
     implicit val conf: Configuration
@@ -24,15 +26,17 @@ class UserController @Inject() (
   def create: Action[NewUser] = {
     Action.async(parse.json[NewUser]) { request =>
       val user: User = request.body
-      userRepository.create(user).map {
+      userRepository.create(user).flatMap {
         case Some(u) =>
-          val token = jwtService.generateToken(u.id)
-          val jsonResponse = Json.obj(
-            "userId" -> u.id,
-            "token" -> token
-          )
-          Created(jsonResponse)
-        case None => Conflict
+          jwtService.generateToken(u.id).map { token =>
+            val jsonResponse = Json.obj(
+              "userId" -> u.id,
+              "token" -> token
+            )
+            Created(jsonResponse)
+          }
+
+        case None => Future.successful(Conflict)
       }
     }
   }
@@ -40,15 +44,26 @@ class UserController @Inject() (
   def login: Action[NewUser] = {
     Action.async(parse.json[NewUser]) { request =>
       val user: User = request.body
-      userRepository.login(user).map {
+      userRepository.login(user).flatMap {
         case Some(u) =>
-          val token = jwtService.generateToken(u.id)
-          val jsonResponse = Json.obj(
-            "userId" -> u.id,
-            "token" -> token
-          )
-          Ok(jsonResponse)
-        case None => Conflict
+          jwtService.generateToken(u.id).map { token =>
+            val jsonResponse = Json.obj(
+              "userId" -> u.id,
+              "token" -> token
+            )
+            Ok(jsonResponse)
+          }
+
+        case None => Future.successful(Conflict)
+      }
+    }
+  }
+
+  def logout(): Action[String] = {
+    Action.async(parse.json[String]) { request =>
+      jwtService.blacklistToken(request.body).map {
+        case Some(_) => NoContent
+        case None    => Conflict
       }
     }
   }

@@ -60,14 +60,14 @@ class FolderRepository @Inject() (
     }
   }
 
-  def delete(userId: Long, id: Long): Future[Option[Int]] = {
+  def delete(userId: Long, id: Long): Future[Option[Long]] = {
     db.run(
       folders
         .filter(folder => folder.authorId === userId && folder.id === id)
         .delete
     ).map {
       case 0       => None
-      case 1       => Some(1)
+      case 1       => Some(id)
       case deleted => throw new RuntimeException(s"Deleted $deleted rows")
     }
   }

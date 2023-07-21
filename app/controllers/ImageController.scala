@@ -18,10 +18,6 @@ import play.api.mvc.{
 import repositories.CommentRepository
 import repositories.ImageRepository
 
-//  TODO: endpoint za register, generisi token na uspesan login, cuvam token na frontu nakon ulogovanja
-//  u token body stavi user id
-//  u svaki sledeci request dodajem token u header
-
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 import services.MinioService

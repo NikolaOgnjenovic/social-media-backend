@@ -1,8 +1,6 @@
 package services
 
-import akka.pattern.StatusReply.Success
 import com.google.inject.Inject
-import com.sun.net.httpserver.Authenticator.Failure
 import io.minio.{
   BucketExistsArgs,
   GetObjectArgs,
@@ -15,12 +13,11 @@ import io.minio.{
 
 import java.io.ByteArrayOutputStream
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
 
 class MinioService @Inject() (implicit ec: ExecutionContext) {
   private val minioClient = MinioClient
     .builder()
-    .endpoint("http://172.19.0.2:9000")
+    .endpoint("http://172.18.0.3:9000")
     .credentials(
       "Up0zU8fbULAKODuXUd2w",
       "0Pdjp3CLNzp7mfuJAy4FJuHrfIhWYYdSHU1YAINW"
