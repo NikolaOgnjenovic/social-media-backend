@@ -36,7 +36,7 @@ class JwtRepository @Inject() (
 
   private class JwtTokenTable(tag: Tag)
       extends Table[JwtToken](tag, "blacklisted_tokens") {
-    def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
+    private def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
     def token = column[String]("token")
 
     // Maps table data to the case class

@@ -13,6 +13,7 @@ import io.minio.{
 
 import java.io.ByteArrayOutputStream
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 class MinioService @Inject() (implicit ec: ExecutionContext) {
   private val minioClient = MinioClient
@@ -28,7 +29,7 @@ class MinioService @Inject() (implicit ec: ExecutionContext) {
       bucketName: String,
       id: String,
       filename: String
-  ): ObjectWriteResponse = {
+  ): Try[ObjectWriteResponse] = Try {
     // Create a bucket if it does not exist
     if (
       !minioClient.bucketExists(
@@ -51,49 +52,35 @@ class MinioService @Inject() (implicit ec: ExecutionContext) {
     )
   }
 
-  def get(bucketName: String, id: String): Future[Option[Array[Byte]]] = {
-    Future {
-      try {
-        // Get a GetObjectResponse from minio
-        val objectData = minioClient
-          .getObject(
-            GetObjectArgs.builder().bucket(bucketName).`object`(id).build()
-          )
+  def get(bucketName: String, id: String): Try[Array[Byte]] = Try {
+    // Get a GetObjectResponse from minio
+    val objectData = minioClient
+      .getObject(
+        GetObjectArgs.builder().bucket(bucketName).`object`(id).build()
+      )
 
-        // Read the object data into a byte array
-        val byteArrayOutputStream = new ByteArrayOutputStream()
-        val buffer = new Array[Byte](8192) // Buffer size for reading data
-        var bytesRead = -1
-        while ({
-          bytesRead = objectData.read(buffer)
-          bytesRead
-        } != -1) {
-          byteArrayOutputStream.write(buffer, 0, bytesRead)
-        }
-
-        // Close both streams
-        objectData.close()
-        byteArrayOutputStream.close()
-
-        // Return the byte array
-        Some(byteArrayOutputStream.toByteArray)
-      } catch {
-        case _: io.minio.errors.MinioException | _: java.io.IOException => None
-      }
+    // Read the object data into a byte array
+    val byteArrayOutputStream = new ByteArrayOutputStream()
+    val buffer = new Array[Byte](8192) // Buffer size for reading data
+    var bytesRead = -1
+    while ({
+      bytesRead = objectData.read(buffer)
+      bytesRead
+    } != -1) {
+      byteArrayOutputStream.write(buffer, 0, bytesRead)
     }
+
+    // Close both streams
+    objectData.close()
+    byteArrayOutputStream.close()
+
+    // Return the byte array
+    byteArrayOutputStream.toByteArray
   }
 
-  def remove(bucketName: String, id: String): Future[Option[Int]] = {
-    val removalData: Future[Option[Int]] = Future {
-      try {
-        minioClient.removeObject(
-          RemoveObjectArgs.builder().bucket(bucketName).`object`(id).build()
-        )
-        Some(1)
-      } catch {
-        case _: io.minio.errors.MinioException | _: java.io.IOException => None
-      }
-    }
-    removalData
+  def remove(bucketName: String, id: String): Try[Unit] = Try {
+    minioClient.removeObject(
+      RemoveObjectArgs.builder().bucket(bucketName).`object`(id).build()
+    )
   }
 }

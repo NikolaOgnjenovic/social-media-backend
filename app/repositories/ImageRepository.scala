@@ -18,57 +18,53 @@ class ImageRepository @Inject() (
   private val images = TableQuery[ImageTable]
 
   createTable()
-  def createTable(): Future[Unit] = {
-    db.run(images.schema.createIfNotExists)
-  }
+  def createTable(): Future[Unit] = db.run(images.schema.createIfNotExists)
 
-  def create(image: Image): Future[Option[Image]] = {
+  def create(image: Image): Future[Option[Image]] =
     db.run((images returning images) += image)
-      .map(Some.apply[Image])
-      // Throw a PSQLException if the query fails
-      .recover { case _: PSQLException =>
-        None
+      .flatMap { _ =>
+        Future.successful(Some(image))
       }
-  }
+      .recoverWith { case _: PSQLException =>
+        Future.successful(None)
+      }
 
   def getAll: Future[Seq[Image]] = db.run(images.result)
   def getAllByUserId(userId: Long): Future[Seq[Image]] =
     db.run(images.filter(_.authorId === userId).result)
 
-  def getById(id: Long): Future[Option[Image]] = {
-    // Filter all images and return the one with the given id
+  // Filter all images and return the one with the given id
+  def getById(id: Long): Future[Option[Image]] =
     db.run(images.filter(_.id === id).result).map(_.headOption)
-  }
 
-  def getByTags(tags: List[String]): Future[Seq[Image]] = {
+  def getByTags(tags: List[String]): Future[Seq[Image]] =
     db.run(images.filter(_.tags @> tags.bind).result)
-  }
 
-  def getByTitle(title: String): Future[Seq[Image]] = {
+  def getByTitle(title: String): Future[Seq[Image]] =
     db.run(images.filter(_.title.like("%" + title + "%")).result)
-  }
 
-  def getByFolderId(folderId: Long): Future[Seq[Image]] = {
+  def getByFolderId(folderId: Long): Future[Seq[Image]] =
     db.run(images.filter(_.folderId === folderId).result)
-  }
 
   def updateTags(
       userId: Long,
       id: Long,
       tags: List[String]
-  ): Future[Option[List[String]]] = {
+  ): Future[Option[List[String]]] =
     db.run(
       images
         .filter(image => image.authorId === userId && image.id === id)
         .map(_.tags)
         .update(tags)
-        .map {
-          case 0       => None
-          case 1       => Some(tags)
-          case updated => throw new RuntimeException(s"Updated $updated rows")
-        }
-    )
-  }
+    ).flatMap {
+      case 0 => Future.successful(None)
+      case 1 => Future.successful(Some(tags))
+      case updatedRowCount =>
+        Future.failed(
+          throw new RuntimeException(s"Updated $updatedRowCount rows")
+        )
+    }
+
   def updateLikeCount(
       id: Long,
       likeCount: Int
@@ -78,12 +74,14 @@ class ImageRepository @Inject() (
         .filter(_.id === id)
         .map(_.likeCount)
         .update(likeCount)
-        .map {
-          case 0       => None
-          case 1       => Some(likeCount)
-          case updated => throw new RuntimeException(s"Updated $updated rows")
-        }
-    )
+    ).flatMap {
+      case 0 => Future.successful(None)
+      case 1 => Future.successful(Some(likeCount))
+      case updatedRowCount =>
+        Future.failed(
+          throw new RuntimeException(s"Updated $updatedRowCount rows")
+        )
+    }
   }
 
   def updateEditorIds(
@@ -96,12 +94,14 @@ class ImageRepository @Inject() (
         .filter(image => image.authorId === userId && image.id === id)
         .map(_.editorIds)
         .update(editorIds)
-        .map {
-          case 0       => None
-          case 1       => Some(editorIds)
-          case updated => throw new RuntimeException(s"Updated $updated rows")
-        }
-    )
+    ).flatMap {
+      case 0 => Future.successful(None)
+      case 1 => Future.successful(Some(editorIds))
+      case updatedRowCount =>
+        Future.failed(
+          throw new RuntimeException(s"Updated $updatedRowCount rows")
+        )
+    }
   }
 
   def updateFolderId(
@@ -114,25 +114,29 @@ class ImageRepository @Inject() (
         .filter(image => image.authorId === userId && image.id === id)
         .map(_.folderId)
         .update(folderId)
-        .map {
-          case 0       => None
-          case 1       => Some(folderId)
-          case updated => throw new RuntimeException(s"Updated $updated rows")
-        }
-    )
+    ).flatMap {
+      case 0 => Future.successful(None)
+      case 1 => Future.successful(Some(folderId))
+      case updatedRowCount =>
+        Future.failed(
+          throw new RuntimeException(s"Updated $updatedRowCount rows")
+        )
+    }
   }
 
-  def delete(userId: Long, id: Long): Future[Option[Int]] = {
+  def delete(userId: Long, id: Long): Future[Option[Long]] =
     db.run(
       images
         .filter(image => image.authorId === userId && image.id === id)
         .delete
-    ).map {
-      case 0       => None
-      case 1       => Some(1)
-      case deleted => throw new RuntimeException(s"Deleted $deleted rows")
+    ).flatMap {
+      case 0 => Future.successful(None)
+      case 1 => Future.successful(Some(id))
+      case deletedRowCount =>
+        Future.failed(
+          throw new RuntimeException(s"Deleted $deletedRowCount rows")
+        )
     }
-  }
 
   private class ImageTable(tag: Tag) extends Table[Image](tag, "images") {
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)

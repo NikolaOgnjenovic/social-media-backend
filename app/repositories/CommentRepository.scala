@@ -17,90 +17,91 @@ class CommentRepository @Inject() (
   private val comments = TableQuery[CommentTable]
 
   createTable()
-  def createTable(): Future[Unit] = {
-    db.run(comments.schema.createIfNotExists)
-  }
+  def createTable(): Future[Unit] = db.run(comments.schema.createIfNotExists)
 
   def create(comment: Comment): Future[Option[Comment]] =
     db.run((comments returning comments) += comment)
-      .map(Some.apply[Comment])
-      // Throw a PSQLException if the query fails
-      .recover { case _: PSQLException =>
-        None
+      .flatMap { _ =>
+        Future.successful(Some(comment))
+      }
+      .recoverWith { case _: PSQLException =>
+        Future.successful(None)
       }
 
   def getAll: Future[Seq[Comment]] = db.run(comments.result)
   def getAllByUserId(userId: Long): Future[Seq[Comment]] =
     db.run(comments.filter(_.authorId === userId).result)
 
-  def getById(id: Long): Future[Option[Comment]] = {
-    // Filter all comments and return the one with the given id
+  def getById(id: Long): Future[Option[Comment]] =
     db.run(comments.filter(_.id === id).result).map(_.headOption)
-  }
 
-  def getByAuthorId(authorId: Long): Future[Option[Comment]] = {
+  def getByAuthorId(authorId: Long): Future[Option[Comment]] =
     db.run(comments.filter(_.authorId === authorId).result).map(_.headOption)
-  }
 
-  def getByImageId(imageId: Long): Future[Option[Comment]] = {
+  def getByImageId(imageId: Long): Future[Option[Comment]] =
     db.run(comments.filter(_.imageId === imageId).result).map(_.headOption)
-  }
 
   def updateContent(
       userId: Long,
       id: Long,
       content: String
-  ): Future[Option[String]] = {
+  ): Future[Option[String]] =
     db.run(
       comments
         .filter(comment => comment.authorId === userId && comment.id === id)
         .map(_.content)
         .update(content)
-        .map {
-          case 0       => None
-          case 1       => Some(content)
-          case updated => throw new RuntimeException(s"Updated $updated rows")
-        }
-    )
-  }
+    ).flatMap {
+      case 0 => Future.successful(None)
+      case 1 => Future.successful(Some(content))
+      case updatedRowCount =>
+        Future.failed(
+          throw new RuntimeException(s"Updated $updatedRowCount rows")
+        )
+    }
 
   def updateLikeCount(
       id: Long,
       likeCount: Int
-  ): Future[Option[Int]] = {
+  ): Future[Option[Int]] =
     db.run(
       comments
         .filter(_.id === id)
         .map(_.likeCount)
         .update(likeCount)
-        .map {
-          case 0       => None
-          case 1       => Some(likeCount)
-          case updated => throw new RuntimeException(s"Updated $updated rows")
-        }
-    )
-  }
+    ).flatMap {
+      case 0 => Future.successful(None)
+      case 1 => Future.successful(Some(likeCount))
+      case updatedRowCount =>
+        Future.failed(
+          throw new RuntimeException(s"Updated $updatedRowCount rows")
+        )
+    }
 
-  def delete(userId: Long, id: Long): Future[Option[Long]] = {
+  def delete(userId: Long, id: Long): Future[Option[Long]] =
     db.run(
       comments
         .filter(comment => comment.authorId === userId && comment.id === id)
         .delete
-    ).map {
-      case 0       => None
-      case 1       => Some(id)
-      case deleted => throw new RuntimeException(s"Deleted $deleted rows")
+    ).flatMap {
+      case 0 => Future.successful(None)
+      case 1 => Future.successful(Some(id))
+      case deletedRowCount =>
+        Future.failed(
+          throw new RuntimeException(s"Deleted $deletedRowCount rows")
+        )
     }
-  }
 
-  def deleteByImageId(imageId: Long): Future[Option[Long]] = {
+  def deleteByImageId(imageId: Long): Future[Option[Boolean]] =
     db.run(comments.filter(_.imageId === imageId).delete)
-      .map {
-        case 0       => None
-        case 1       => Some(1)
-        case deleted => throw new RuntimeException(s"Deleted $deleted rows")
+      .flatMap {
+        case 0 => Future.successful(None)
+        case 1 => Future.successful(Some(true))
+        case deletedRowCount =>
+          Future.failed(
+            throw new RuntimeException(s"Deleted $deletedRowCount rows")
+          )
       }
-  }
 
   private class CommentTable(tag: Tag) extends Table[Comment](tag, "comments") {
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)

@@ -5,9 +5,11 @@ import auth.JwtAction
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.nio.JpegWriter
 import dtos.NewImage
+import io.minio.ObjectWriteResponse
 import play.api.libs.Files
 import play.api.libs.json.Json
 
+import scala.util.{Failure, Success, Try}
 import java.io.{ByteArrayInputStream, File}
 import play.api.mvc.{
   Action,
@@ -20,7 +22,7 @@ import repositories.CommentRepository
 import repositories.ImageRepository
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 import services.MinioService
 import models.Image
 
@@ -60,7 +62,9 @@ class ImageController @Inject() (
             case Some(image) =>
               // Upload the image to minio and delete the temporary file
               minioService
-                .upload("images", image.id.toString, imagePath)
+                .upload("images", image.id.toString, imagePath) match {
+                case Failure(ex) => Conflict(ex.getMessage)
+              }
 
               // Upload the compressed image to minio and delete the temporary file
               val compressedImagePath = compressImageFile(
@@ -71,7 +75,9 @@ class ImageController @Inject() (
                 "compressed-images",
                 image.id.toString,
                 compressedImagePath
-              )
+              ) match {
+                case Failure(ex) => Conflict(ex.getMessage)
+              }
 
               Paths.get(imagePath).toFile.delete()
               Paths.get(compressedImagePath).toFile.delete()
@@ -79,12 +85,7 @@ class ImageController @Inject() (
               Created(Json.toJson(image))
             case None => Conflict
           }
-
         }
-        .getOrElse(
-          Redirect(routes.HomeController.index())
-        )
-
       Ok("Image created")
     }
   }
@@ -106,25 +107,25 @@ class ImageController @Inject() (
     }
   }
 
-  def getImageFileById(id: Long): Action[AnyContent] = Action.async {
-    minioService.get("images", id.toString).map {
-      case Some(image) =>
+  def getImageFileById(id: Long): Action[AnyContent] = Action {
+    minioService.get("images", id.toString) match {
+      case Success(image) =>
         Ok.chunked(
           StreamConverters
             .fromInputStream(() => new ByteArrayInputStream(image))
         ).as("image/jpeg")
-      case None => NotFound(s"Image with id: $id not found")
+      case Failure(_) => NotFound(s"Image with id: $id not found")
     }
   }
 
-  def getCompressedImageFileById(id: Long): Action[AnyContent] = Action.async {
-    minioService.get("compressed-images", id.toString).map {
-      case Some(image) =>
+  def getCompressedImageFileById(id: Long): Action[AnyContent] = Action {
+    minioService.get("compressed-images", id.toString) match {
+      case Success(image) =>
         Ok.chunked(
           StreamConverters
             .fromInputStream(() => new ByteArrayInputStream(image))
         ).as("image/jpeg")
-      case None => NotFound(s"Compressed image with id: $id not found")
+      case Failure(_) => NotFound(s"Compressed image with id: $id not found")
     }
   }
 
@@ -146,8 +147,8 @@ class ImageController @Inject() (
   def updateTags(id: Long): Action[List[String]] =
     jwtAction.async(parse.json[List[String]]) { request =>
       imageRepository.updateTags(request.userId, id, request.body).map {
-        case Some(tags) => Ok(Json.toJson(tags))
-        case None       => NotFound
+        case tags => Ok(Json.toJson(tags))
+        case None => NotFound
       }
     }
 
@@ -215,21 +216,14 @@ class ImageController @Inject() (
   def delete(id: Long): Action[AnyContent] = jwtAction.async { request =>
     imageRepository.delete(request.userId, id).map {
       case Some(_) =>
-        minioService.remove("images", id.toString).map {
-          case Some(_) =>
-            commentRepository.deleteByImageId(id).map {
-              case Some(_) => NoContent
-              case None    => NotFound
-            }
-          case None => NotFound
+        minioService.remove("images", id.toString) match {
+          case Success(_) =>
+            commentRepository.deleteByImageId(id).map { case None => NotFound }
         }
-        minioService.remove("compressed-images", id.toString).map {
-          case Some(_) =>
-            commentRepository.deleteByImageId(id).map {
-              case Some(_) => NoContent
-              case None    => NotFound
-            }
-          case None => NotFound
+
+        minioService.remove("compressed-images", id.toString) match {
+          case Success(_) =>
+            commentRepository.deleteByImageId(id).map { case None => NotFound }
         }
         NoContent
       case None => NotFound
