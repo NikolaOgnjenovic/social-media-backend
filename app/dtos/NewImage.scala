@@ -8,7 +8,6 @@ case class NewImage(
     authorId: Long,
     tags: List[String],
     title: String,
-    imagePath: String
 )
 
 object NewImage {

@@ -20,26 +20,9 @@ class JwtService @Inject() (
   private val algorithm =
     JwtAlgorithm.HS256 //  TODO: when sending with an OK(), the key gets too long if it isn't hdm5. Solve this??
 
-//  def generateToken(userId: Long, maxRetries: Int = 20): Future[String] = {
-//    val claim = Json.obj(("userId", userId))
-//    val token = JwtJson.encode(claim, encryptionKey, algorithm)
-//    jwtRepository.getAll.flatMap { blacklistedTokens =>
-//      if (blacklistedTokens.contains(token)) {
-//        if (maxRetries > 0) {
-//          generateToken(userId, maxRetries - 1)
-//        } else {
-//          // Maximum retries reached, handle the error or return a default token
-//          Future.failed(
-//            new Exception(
-//              "Maximum retries reached. Unable to generate a non-blacklisted token."
-//            )
-//          )
-//        }
-//      } else {
-//        Future.successful(token)
-//      }
-//    }
-//  }
+  // TODO: When blacklisting a token new ones that get generated fail because they are blacklisted.
+  //  I suppose that implies that tokens are indeed the same for each userId with the given encryption key and algorithm
+  //  Why would I blacklist then? And how would I generate a new one for the same user?
   def generateToken(userId: Long): Future[String] = {
     val claim = Json.obj(("userId", userId))
     val token = JwtJson.encode(claim, encryptionKey, algorithm)

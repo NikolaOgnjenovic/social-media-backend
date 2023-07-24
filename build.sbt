@@ -32,6 +32,7 @@ libraryDependencies ++= Seq(
   // Minio
   "io.minio" % "minio" % "8.3.7", // This old version uses jackson 11 which fits scala version 2.13?
   "commons-io" % "commons-io" % "20030203.000550",
+  "com.sksamuel.scrimage" % "scrimage-core" % "4.0.33",
   // Auth
   "com.github.jwt-scala" %% "jwt-play-json" % "9.4.3"
 )

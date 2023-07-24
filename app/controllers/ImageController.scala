@@ -2,12 +2,13 @@ package controllers
 
 import akka.stream.scaladsl.StreamConverters
 import auth.JwtAction
+import com.sksamuel.scrimage.ImmutableImage
+import com.sksamuel.scrimage.nio.JpegWriter
 import dtos.NewImage
-import models.Image
 import play.api.libs.Files
 import play.api.libs.json.Json
 
-import java.io.ByteArrayInputStream
+import java.io.{ByteArrayInputStream, File}
 import play.api.mvc.{
   Action,
   AnyContent,
@@ -21,6 +22,7 @@ import repositories.ImageRepository
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 import services.MinioService
+import models.Image
 
 import java.nio.file.Paths
 
@@ -51,8 +53,7 @@ class ImageController @Inject() (
           val imageToAdd: Image = new NewImage(
             request.body.dataParts.get("authorId").head.head.toLong,
             request.body.dataParts.get("tags").head.toList,
-            request.body.dataParts.get("title").head.head,
-            imagePath
+            request.body.dataParts.get("title").head.head
           )
 
           imageRepository.create(imageToAdd).map {
@@ -60,7 +61,21 @@ class ImageController @Inject() (
               // Upload the image to minio and delete the temporary file
               minioService
                 .upload("images", image.id.toString, imagePath)
+
+              // Upload the compressed image to minio and delete the temporary file
+              val compressedImagePath = compressImageFile(
+                Paths.get(imagePath).toFile,
+                s"public/images/compressed/$filename"
+              )
+              minioService.upload(
+                "compressed-images",
+                image.id.toString,
+                compressedImagePath
+              )
+
               Paths.get(imagePath).toFile.delete()
+              Paths.get(compressedImagePath).toFile.delete()
+
               Created(Json.toJson(image))
             case None => Conflict
           }
@@ -74,9 +89,18 @@ class ImageController @Inject() (
     }
   }
 
+  private def compressImageFile(
+      imageFile: File,
+      compressedPath: String
+  ): String = {
+    val image = ImmutableImage.loader().fromFile(imageFile)
+    val writer = new JpegWriter().withCompression(10).withProgressive(true)
+    image.output(writer, new File(compressedPath))
+    compressedPath
+  }
+
   def getAll: Action[AnyContent] = Action.async {
     imageRepository.getAll.map(images => Ok(Json.toJson(images)))
-
   }
   def getAllByUserId: Action[AnyContent] = jwtAction.async { request =>
     imageRepository
@@ -84,7 +108,6 @@ class ImageController @Inject() (
       .map(images => Ok(Json.toJson(images)))
   }
 
-  // TODO: Add friends / editors so that not everyone can see all images
   def getById(id: Long): Action[AnyContent] = Action.async {
     imageRepository.getById(id).map {
       case Some(image) => Ok(Json.toJson(image))
@@ -100,6 +123,17 @@ class ImageController @Inject() (
             .fromInputStream(() => new ByteArrayInputStream(image))
         ).as("image/jpeg")
       case None => NotFound(s"Image with id: $id not found")
+    }
+  }
+
+  def getCompressedImageFileById(id: Long): Action[AnyContent] = Action.async {
+    minioService.get("compressed-images", id.toString).map {
+      case Some(image) =>
+        Ok.chunked(
+          StreamConverters
+            .fromInputStream(() => new ByteArrayInputStream(image))
+        ).as("image/jpeg")
+      case None => NotFound(s"Compressed image with id: $id not found")
     }
   }
 
@@ -154,6 +188,14 @@ class ImageController @Inject() (
     imageRepository.delete(request.userId, id).map {
       case Some(_) =>
         minioService.remove("images", id.toString).map {
+          case Some(_) =>
+            commentRepository.deleteByImageId(id).map {
+              case Some(_) => NoContent
+              case None    => NotFound
+            }
+          case None => NotFound
+        }
+        minioService.remove("compressed-images", id.toString).map {
           case Some(_) =>
             commentRepository.deleteByImageId(id).map {
               case Some(_) => NoContent
