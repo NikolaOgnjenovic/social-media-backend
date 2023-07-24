@@ -8,7 +8,7 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import db.MyPostgresProfile.api._
-
+import org.mindrot.jbcrypt.BCrypt
 class UserRepository @Inject() (
     override protected val dbConfigProvider: DatabaseConfigProvider
 )(implicit ec: ExecutionContext)
@@ -22,23 +22,27 @@ class UserRepository @Inject() (
     db.run(users.schema.createIfNotExists)
   }
 
-  def create(user: User): Future[Option[User]] =
-    db.run((users returning users) += user)
+  def create(user: User): Future[Option[User]] = {
+    val newUser = new User(
+      user.id,
+      user.username,
+      BCrypt.hashpw(user.password, BCrypt.gensalt(5))
+    )
+    db.run((users returning users) += newUser)
       .map(Some.apply[User])
       // Throw a PSQLException if the query fails
       .recover { case _: PSQLException =>
         None
       }
+  }
 
   def login(user: User): Future[Option[User]] = db
     .run(
       users
-        .filter(u =>
-          u.username === user.username && u.password === user.password
-        )
+        .filter(_.username === user.username)
         .result
     )
-    .map(_.headOption)
+    .map(_.headOption.filter(u => BCrypt.checkpw(user.password, u.password)))
   def getAll: Future[Seq[User]] = db.run(users.result)
 
   def getById(id: Long): Future[Option[User]] = {

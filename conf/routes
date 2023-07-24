@@ -4,91 +4,54 @@
 # ~~~~
 
 # An example controller showing a sample home page
-+nocsrf
 GET     /                           controllers.HomeController.index()
 
 # Map static resources from the /public folder to the /assets URL path
-+nocsrf
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 
 # Image routes
-+nocsrf
-POST    /api/v1/images              controllers.ImageController.create
-+nocsrf
-GET     /api/v1/images              controllers.ImageController.getAll
-+nocsrf
-GET     /api/v1/images/user         controllers.ImageController.getAllByUserId
-+nocsrf
+POST    /api/v1/images              controllers.ImageController.create()
+GET     /api/v1/images              controllers.ImageController.getAll()
 GET     /api/v1/images/:id          controllers.ImageController.getById(id: Long)
-+nocsrf
 GET     /api/v1/images/:id/file     controllers.ImageController.getImageFileById(id: Long)
-+nocsrf
-GET /api/v1/images/:id/compressed-file  controllers.ImageController.getCompressedImageFileById(id: Long)
-+nocsrf
+GET     /api/v1/images/:id/compressed-file  controllers.ImageController.getCompressedImageFileById(id: Long)
 GET     /api/v1/images/tags/:tags   controllers.ImageController.getByTags(tags: String)
-+nocsrf
 GET     /api/v1/images/title/:title controllers.ImageController.getByTitle(title: String)
-+nocsrf
+
 PATCH   /api/v1/images/:id/tags     controllers.ImageController.updateTags(id: Long)
-+nocsrf
-PATCH   /api/v1/images/:likeCount/like-count controllers.ImageController.updateLikeCount(likeCount: Long)
-+nocsrf
+PATCH   /api/v1/images/:id/like-count controllers.ImageController.updateLikeCount(id: Long)
 PATCH   /api/v1/images/:id/editor-ids controllers.ImageController.updateEditorIds(id: Long)
-+nocsrf
 PATCH   /api/v1/images/:id/folder-id controllers.ImageController.updateFolderId(id: Long)
-+nocsrf
+PATCH   /api/v1/images/:id/file     controllers.ImageController.updateFile(id: Long)
 DELETE  /api/v1/images/:id          controllers.ImageController.delete(id: Long)
+DELETE  /api/v1/images/:imageId/comments controllers.CommentController.deleteByImageId(imageId: Long)
 
 # Folder routes
-+nocsrf
-POST    /api/v1/folders             controllers.FolderController.create
-+nocsrf
-GET     /api/v1/folders             controllers.FolderController.getAll
-+nocsrf
-GET     /api/v1/folders/user        controllers.FolderController.getAllByUserId
-+nocsrf
-GET     /api/v1/folders/:authorId   controllers.FolderController.getByAuthorId(authorId: Long)
-+nocsrf
-GET     /api/v1/images/folder/:folderId controllers.ImageController.getByFolderId(folderId: Long)
-+nocsrf
+POST    /api/v1/folders             controllers.FolderController.create()
+GET     /api/v1/folders             controllers.FolderController.getAll()
+GET     /api/v1/folders/user        controllers.FolderController.getAllByUserId()
+GET     /api/v1/folders/:id         controllers.FolderController.getByAuthorId(id: Long)
+GET     /api/v1/folders/:folderId/images controllers.ImageController.getByFolderId(folderId: Long)
 PATCH   /api/v1/folders/:id/title   controllers.FolderController.updateTitle(id: Long)
-+nocsrf
 DELETE  /api/v1/folders/:id         controllers.FolderController.delete(id: Long)
 
 # Comment routes
-+nocsrf
-GET     /api/v1/comments            controllers.CommentController.getAll
-+nocsrf
-GET     /api/v1/comments/user       controllers.CommentController.getAllByUserId
-+nocsrf
+GET     /api/v1/comments            controllers.CommentController.getAll()
+GET     /api/v1/comments/user       controllers.CommentController.getAllByUserId()
 GET     /api/v1/comments/:id        controllers.CommentController.getById(id: Long)
-+nocsrf
 GET     /api/v1/comments/author/:authorId controllers.CommentController.getByAuthorId(authorId: Long)
-+nocsrf
 GET     /api/v1/comments/imageId/:imageId controllers.CommentController.getByImageId(imageId: Long)
-+nocsrf
-POST    /api/v1/comments            controllers.CommentController.create
-+nocsrf
+POST    /api/v1/comments            controllers.CommentController.create()
 PATCH   /api/v1/comments/:id/content controllers.CommentController.updateContent(id: Long)
-+nocsrf
-PATCH   /api/v1/comments/:likeCount/like-count controllers.CommentController.updateLikeCount(likeCount: Long)
-+nocsrf
+PATCH   /api/v1/comments/:id/like-count controllers.CommentController.updateLikeCount(id: Long)
 DELETE  /api/v1/comments/:id        controllers.CommentController.delete(id: Long)
-+nocsrf
-DELETE  /api/v1/comments/imageId/:imageId controllers.CommentController.deleteByImageId(imageId: Long)
 
 # User routes
-+nocsrf
 POST    /api/v1/users               controllers.UserController.create()
-+nocsrf
 GET     /api/v1/users               controllers.UserController.getAll()
-+nocsrf
 GET     /api/v1/users/:id           controllers.UserController.getById(id: Long)
-+nocsrf
-POST    /api/v1/login              controllers.UserController.login()
-+nocsrf
-POST    /api/v1/logout             controllers.UserController.logout()
-+nocsrf
+GET     /api/v1/user-images             controllers.ImageController.getAllByUserId()
+POST    /api/v1/login               controllers.UserController.login()
+POST    /api/v1/logout              controllers.UserController.logout()
 PATCH   /api/v1/users/:id/password  controllers.UserController.updatePassword(id: Long)
-+nocsrf
 DELETE  /api/v1/users/:id           controllers.UserController.delete(id: Long)

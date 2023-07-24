@@ -89,19 +89,10 @@ class ImageController @Inject() (
     }
   }
 
-  private def compressImageFile(
-      imageFile: File,
-      compressedPath: String
-  ): String = {
-    val image = ImmutableImage.loader().fromFile(imageFile)
-    val writer = new JpegWriter().withCompression(10).withProgressive(true)
-    image.output(writer, new File(compressedPath))
-    compressedPath
-  }
-
   def getAll: Action[AnyContent] = Action.async {
     imageRepository.getAll.map(images => Ok(Json.toJson(images)))
   }
+
   def getAllByUserId: Action[AnyContent] = jwtAction.async { request =>
     imageRepository
       .getAllByUserId(request.userId)
@@ -184,6 +175,43 @@ class ImageController @Inject() (
       }
     }
 
+  def updateFile(id: Long): Action[MultipartFormData[Files.TemporaryFile]] =
+    jwtAction(parse.multipartFormData) { request =>
+      request.body
+        .file("image")
+        .map { picture =>
+          // Upload the picture
+          val filename = Paths.get(picture.filename).getFileName
+          val imagePath = s"public/images/$filename"
+          picture.ref.copyTo(
+            Paths.get(imagePath),
+            replace = true
+          )
+
+          // Upload the image to minio and delete the temporary file
+          minioService
+            .upload("images", id.toString, imagePath)
+
+          // Upload the compressed image to minio and delete the temporary file
+          val compressedImagePath = compressImageFile(
+            Paths.get(imagePath).toFile,
+            s"public/images/compressed/$filename"
+          )
+          minioService.upload(
+            "compressed-images",
+            id.toString,
+            compressedImagePath
+          )
+
+          Paths.get(imagePath).toFile.delete()
+          Paths.get(compressedImagePath).toFile.delete()
+
+          Created(Json.toJson(id))
+        }
+
+      Ok("Image created")
+    }
+
   def delete(id: Long): Action[AnyContent] = jwtAction.async { request =>
     imageRepository.delete(request.userId, id).map {
       case Some(_) =>
@@ -206,5 +234,15 @@ class ImageController @Inject() (
         NoContent
       case None => NotFound
     }
+  }
+
+  private def compressImageFile(
+      imageFile: File,
+      compressedPath: String
+  ): String = {
+    val image = ImmutableImage.loader().fromFile(imageFile)
+    val writer = new JpegWriter().withCompression(30).withProgressive(true)
+    image.output(writer, new File(compressedPath))
+    compressedPath
   }
 }

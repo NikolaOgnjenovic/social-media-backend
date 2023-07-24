@@ -34,7 +34,9 @@ libraryDependencies ++= Seq(
   "commons-io" % "commons-io" % "20030203.000550",
   "com.sksamuel.scrimage" % "scrimage-core" % "4.0.33",
   // Auth
-  "com.github.jwt-scala" %% "jwt-play-json" % "9.4.3"
+  "com.github.jwt-scala" %% "jwt-play-json" % "9.4.3",
+  "com.github.t3hnar" %% "scala-bcrypt" % "4.3.0",
+  filters
 )
 
 dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.11.4"

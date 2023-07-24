@@ -4,7 +4,7 @@ import akka.pattern.StatusReply.Success
 import auth.JwtAction
 import dtos.NewUser
 import models.User
-import play.api.{Configuration, Logger}
+import play.api.Configuration
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import repositories.UserRepository
@@ -17,8 +17,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class UserController @Inject() (
     val controllerComponents: ControllerComponents,
     userRepository: UserRepository,
-    jwtService: JwtService,
-    jwtAction: JwtAction
+    jwtService: JwtService
 )(
     implicit ec: ExecutionContext,
     implicit val conf: Configuration
