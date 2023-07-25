@@ -13,6 +13,7 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 POST    /api/v1/images              controllers.ImageController.create()
 GET     /api/v1/images              controllers.ImageController.getAll()
 GET     /api/v1/images/:id          controllers.ImageController.getById(id: Long)
+GET     /api/v1/images/page/:page/:pageSize  controllers.ImageController.getAllWithPagination(page: Int, pageSize: Int)
 GET     /api/v1/images/:id/file     controllers.ImageController.getImageFileById(id: Long)
 GET     /api/v1/images/:id/compressed-file  controllers.ImageController.getCompressedImageFileById(id: Long)
 GET     /api/v1/images/tags/:tags   controllers.ImageController.getByTags(tags: String)

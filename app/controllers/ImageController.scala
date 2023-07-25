@@ -97,6 +97,22 @@ class ImageController @Inject() (
     imageRepository.getAll.map(images => Ok(Json.toJson(images)))
   }
 
+  def getAllWithPagination(page: Int, pageSize: Int): Action[AnyContent] =
+    Action.async {
+      if (page <= 0) {
+        Future.successful(
+          BadRequest(
+            "Invalid page number. The page number must be a positive number"
+          )
+        )
+      } else {
+        val offset = (page - 1) * pageSize
+        imageRepository
+          .getAllWithPagination(offset, pageSize)
+          .map(images => Ok(Json.toJson(images)))
+      }
+    }
+
   def getAllByUserId: Action[AnyContent] = jwtAction.async { request =>
     imageRepository
       .getAllByUserId(request.userId)

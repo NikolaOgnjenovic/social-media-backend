@@ -32,6 +32,9 @@ class ImageRepository @Inject() (
       }
 
   def getAll: Future[Seq[Image]] = db.run(images.result)
+
+  def getAllWithPagination(offset: Int, pageSize: Int): Future[Seq[Image]] =
+    db.run(images.drop(offset).take(pageSize).result)
   def getAllByUserId(userId: Long): Future[Seq[Image]] =
     db.run(images.filter(_.authorId === userId).result)
 

@@ -18,7 +18,7 @@ import scala.util.Try
 class MinioService @Inject() (implicit ec: ExecutionContext) {
   private val minioClient = MinioClient
     .builder()
-    .endpoint("http://172.18.0.3:9000")
+    .endpoint("http://172.24.0.4:9000")
     .credentials(
       "Up0zU8fbULAKODuXUd2w",
       "0Pdjp3CLNzp7mfuJAy4FJuHrfIhWYYdSHU1YAINW"
