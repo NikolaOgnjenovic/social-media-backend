@@ -21,9 +21,11 @@ class ImageRepository @Inject() (
   def createTable(): Future[Unit] = db.run(images.schema.createIfNotExists)
 
   def create(image: Image): Future[Option[Image]] =
-    db.run((images returning images) += image)
-      .flatMap { _ =>
-        Future.successful(Some(image))
+    db.run((images returning images.map(_.id)) += image)
+      .flatMap { generatedId =>
+        getById(
+          generatedId
+        ) // Fetch the inserted image using the generated ID
       }
       .recoverWith { case _: PSQLException =>
         Future.successful(None)

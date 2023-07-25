@@ -5,11 +5,10 @@ import auth.JwtAction
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.nio.JpegWriter
 import dtos.NewImage
-import io.minio.ObjectWriteResponse
 import play.api.libs.Files
 import play.api.libs.json.Json
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 import java.io.{ByteArrayInputStream, File}
 import play.api.mvc.{
   Action,
@@ -38,7 +37,7 @@ class ImageController @Inject() (
 )(implicit ec: ExecutionContext)
     extends BaseController {
   def create: Action[MultipartFormData[Files.TemporaryFile]] = {
-    Action(parse.multipartFormData) { request =>
+    Action(parse.multipartFormData).async { request =>
       request.body.dataParts("authorId")
       request.body
         .file("image")
@@ -58,12 +57,13 @@ class ImageController @Inject() (
             request.body.dataParts.get("title").head.head
           )
 
-          imageRepository.create(imageToAdd).map {
-            case Some(image) =>
+          imageRepository.create(imageToAdd).flatMap {
+            case Some(createdImage) =>
               // Upload the image to minio and delete the temporary file
               minioService
-                .upload("images", image.id.toString, imagePath) match {
+                .upload("images", createdImage.id.toString, imagePath) match {
                 case Failure(ex) => Conflict(ex.getMessage)
+                case Success(_)  => // Continue processing
               }
 
               // Upload the compressed image to minio and delete the temporary file
@@ -73,20 +73,23 @@ class ImageController @Inject() (
               )
               minioService.upload(
                 "compressed-images",
-                image.id.toString,
+                createdImage.id.toString,
                 compressedImagePath
               ) match {
                 case Failure(ex) => Conflict(ex.getMessage)
+                case Success(_)  => // Continue processing
               }
 
               Paths.get(imagePath).toFile.delete()
               Paths.get(compressedImagePath).toFile.delete()
 
-              Created(Json.toJson(image))
-            case None => Conflict
+              Future.successful(Created(Json.toJson(createdImage)))
+            case None => Future.successful(Conflict)
           }
         }
-      Ok("Image created")
+        .getOrElse {
+          Future.successful(BadRequest("Image file not found"))
+        }
     }
   }
 
@@ -147,8 +150,8 @@ class ImageController @Inject() (
   def updateTags(id: Long): Action[List[String]] =
     jwtAction.async(parse.json[List[String]]) { request =>
       imageRepository.updateTags(request.userId, id, request.body).map {
-        case tags => Ok(Json.toJson(tags))
-        case None => NotFound
+        case Some(tags) => Ok(Json.toJson(tags))
+        case None       => NotFound
       }
     }
 
@@ -218,15 +221,25 @@ class ImageController @Inject() (
       case Some(_) =>
         minioService.remove("images", id.toString) match {
           case Success(_) =>
-            commentRepository.deleteByImageId(id).map { case None => NotFound }
+            commentRepository.deleteByImageId(id).map {
+              case None =>
+                NotFound(Json.toJson(id))
+              case Some(_) =>
+            }
+          case Failure(_) => NotFound(Json.toJson(id))
         }
 
         minioService.remove("compressed-images", id.toString) match {
           case Success(_) =>
-            commentRepository.deleteByImageId(id).map { case None => NotFound }
+            commentRepository.deleteByImageId(id).map {
+              case None =>
+                NotFound(Json.toJson(id))
+              case Some(_) =>
+            }
+          case Failure(_) => NotFound(Json.toJson(id))
         }
-        NoContent
-      case None => NotFound
+        Accepted(Json.toJson(id))
+      case None => NotFound(Json.toJson(id))
     }
   }
 
