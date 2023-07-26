@@ -93,8 +93,28 @@ services:
       - minio3
       - minio4
 
+  backend:
+    container_name: backend_container
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9000:9000"
+    depends_on:
+      - postgres
+      - minio1
+      - minio2
+      - minio3
+      - minio4
+    networks:
+      - postgres
+      - backend_network
+    restart: unless-stopped
+
 networks:
   postgres:
+    driver: bridge
+  backend_network:
     driver: bridge
 
 volumes:
@@ -108,3 +128,8 @@ volumes:
   data3-2:
   data4-1:
   data4-2:
+
+
+# Remember that whenever you make changes to your Scala Play application's source code,
+# you'll need to rebuild the Docker image and restart the containers using docker-compose up --build
+# to apply the changes to the running application.

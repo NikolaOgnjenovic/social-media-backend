@@ -66,8 +66,6 @@ class UserController @Inject() (
       }
     }
   }
-
-  // TODO: Add user roles to user profiles. If admin parameter = true in token, then the user can getAll etc.
   def getAll: Action[AnyContent] = Action.async {
     userRepository.getAll.map(users => Ok(Json.toJson(users)))
   }

@@ -4,7 +4,7 @@ info:
   description: Image sharing webapp API made using the Play Framework, Slick & Scala
   version: 0.0.1
 servers:
-  - url: http://localhost:9000/v1
+  - url: http://localhost:9000/api/v1
     description: Localhost only (for now!)
 paths:
   /images:

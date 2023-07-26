@@ -8,6 +8,7 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import db.MyPostgresProfile.api._
+import slick.jdbc.PostgresProfile.api._
 
 class ImageRepository @Inject() (
     override protected val dbConfigProvider: DatabaseConfigProvider
