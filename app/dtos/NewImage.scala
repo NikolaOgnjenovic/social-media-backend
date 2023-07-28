@@ -7,7 +7,7 @@ import scala.language.implicitConversions
 case class NewImage(
     authorId: Long,
     tags: List[String],
-    title: String,
+    title: String
 )
 
 object NewImage {

@@ -24,9 +24,9 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import services.MinioService
 import models.Image
+import play.api.Configuration
 
 import java.nio.file.Paths
-
 @Singleton
 class ImageController @Inject() (
     val controllerComponents: ControllerComponents,
@@ -34,17 +34,18 @@ class ImageController @Inject() (
     minioService: MinioService,
     commentRepository: CommentRepository,
     jwtAction: JwtAction
-)(implicit ec: ExecutionContext)
+)(implicit ec: ExecutionContext, config: Configuration)
     extends BaseController {
   def create: Action[MultipartFormData[Files.TemporaryFile]] = {
     Action(parse.multipartFormData).async { request =>
-      request.body.dataParts("authorId")
       request.body
         .file("image")
         .map { picture =>
           // Upload the picture
           val filename = Paths.get(picture.filename).getFileName
-          val imagePath = s"public/images/$filename"
+          val uploadDir = config.get[String]("imageUploadDirectory")
+          val imagePath = s"$uploadDir/$filename"
+          //val imagePath = s"../public/images/$filename"
           picture.ref.copyTo(
             Paths.get(imagePath),
             replace = true
@@ -59,31 +60,41 @@ class ImageController @Inject() (
 
           imageRepository.create(imageToAdd).flatMap {
             case Some(createdImage) =>
+              println("Image path on first create: " + imagePath)
+              println(
+                "minio endpoint: " + config.get[String]("minio.endpoint")
+              )
               // Upload the image to minio and delete the temporary file
               minioService
                 .upload("images", createdImage.id.toString, imagePath) match {
-                case Failure(ex) => Conflict(ex.getMessage)
-                case Success(_)  => // Continue processing
+                case Failure(ex) => Future.successful(Conflict(ex.getMessage))
+                case Success(_) => // Upload the compressed image to minio and delete the temporary file
+                  val compressedUploadDir =
+                    config.get[String]("compressedImageUploadDirectory")
+                  val compressedFilename = Paths.get(imagePath).getFileName
+                  val compressedImagePath = compressImageFile(
+                    Paths.get(imagePath).toFile,
+                    s"$compressedUploadDir/$compressedFilename"
+                  )
+                  println("Compressed image path: " + compressedImagePath)
+                  println(
+                    "minio endpoint: " + config.get[String]("minio.endpoint")
+                  )
+                  minioService.upload(
+                    "compressed-images",
+                    createdImage.id.toString,
+                    compressedImagePath
+                  ) match {
+                    case Failure(ex) =>
+                      Future.successful(Conflict(ex.getMessage))
+                    case Success(_) =>
+                      Paths.get(imagePath).toFile.delete()
+                      Paths.get(compressedImagePath).toFile.delete()
+
+                      Future.successful(Created(Json.toJson(createdImage)))
+                  }
               }
 
-              // Upload the compressed image to minio and delete the temporary file
-              val compressedImagePath = compressImageFile(
-                Paths.get(imagePath).toFile,
-                s"public/images/compressed/$filename"
-              )
-              minioService.upload(
-                "compressed-images",
-                createdImage.id.toString,
-                compressedImagePath
-              ) match {
-                case Failure(ex) => Conflict(ex.getMessage)
-                case Success(_)  => // Continue processing
-              }
-
-              Paths.get(imagePath).toFile.delete()
-              Paths.get(compressedImagePath).toFile.delete()
-
-              Future.successful(Created(Json.toJson(createdImage)))
             case None => Future.successful(Conflict)
           }
         }

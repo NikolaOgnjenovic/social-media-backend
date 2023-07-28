@@ -1,5 +1,5 @@
-name := """play-scala-seed"""
-organization := "Nikola"
+name := "image-website-backend"
+organization := "Mrmi"
 
 version := "1.0-SNAPSHOT"
 lazy val root = (project in file(".")).enablePlugins(PlayScala, SwaggerPlugin)
@@ -7,18 +7,13 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala, SwaggerPlugin)
 scalaVersion := "2.13.11"
 swaggerDomainNameSpaces := Seq("models")
 
-// Adds additional packages into Twirl
-//TwirlKeys.templateImports += "Nikola.controllers._"
-
-// Adds additional packages into conf/routes
-// play.sbt.routes.RoutesKeys.routesImport += "Nikola.binders._"
 libraryDependencies ++= Seq(
   guice,
   // Database
   "com.typesafe.play" %% "play-slick" % "5.1.0",
   "com.typesafe.play" %% "play-slick-evolutions" % "5.1.0",
   "org.postgresql" % "postgresql" % "42.5.4",
-  "com.github.tminglei" %% "slick-pg" % "0.21.1",
+  "com.github.tminglei" %% "slick-pg" % "0.21.1", // Store lists in database
   // Swagger
   "org.webjars" % "swagger-ui" % "4.18.1",
   // Test
@@ -36,8 +31,25 @@ libraryDependencies ++= Seq(
   // Auth
   "com.github.jwt-scala" %% "jwt-play-json" % "9.4.3",
   "com.github.t3hnar" %% "scala-bcrypt" % "4.3.0",
-  filters
+  filters,
+  // Elastic search
+  "com.sksamuel.elastic4s" %% "elastic4s-client-esjava" % "8.8.1",
+  // test kit
+  "com.sksamuel.elastic4s" %% "elastic4s-testkit" % "8.8.1" % "test"
 )
 
 dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.11.4"
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.11.1"
+
+lazy val runLocal =
+  taskKey[Unit]("Run the application with local configuration")
+lazy val runDocker =
+  taskKey[Unit]("Run the application with Docker configuration")
+
+runLocal := {
+  (Compile / run).toTask(s" -Dconfig.resource=application-local.conf").value
+}
+
+runDocker := {
+  (Compile / run).toTask(s" -Dconfig.resource=application-docker.conf").value
+}

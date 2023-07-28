@@ -1,6 +1,7 @@
 package services
 
 import com.google.inject.Inject
+import com.typesafe.config.{Config, ConfigFactory}
 import io.minio.{
   BucketExistsArgs,
   GetObjectArgs,
@@ -10,19 +11,20 @@ import io.minio.{
   RemoveObjectArgs,
   UploadObjectArgs
 }
-
 import java.io.ByteArrayOutputStream
-import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
-class MinioService @Inject() (implicit ec: ExecutionContext) {
+class MinioService @Inject() {
+  private val environment = sys.env.getOrElse("ENV", "local")
+  private val config: Config =
+    ConfigFactory.load(s"application-$environment.conf")
+  private val minioEndpoint = config.getString("minio.endpoint")
+  private val minioAccessKey = config.getString("minio.accessKey")
+  private val minioSecretAccessKey = config.getString("minio.secretAccessKey")
   private val minioClient = MinioClient
     .builder()
-    .endpoint("http://172.24.0.4:9000")
-    .credentials(
-      "Up0zU8fbULAKODuXUd2w",
-      "0Pdjp3CLNzp7mfuJAy4FJuHrfIhWYYdSHU1YAINW"
-    )
+    .endpoint(minioEndpoint)
+    .credentials(minioAccessKey, minioSecretAccessKey)
     .build()
 
   def upload(
