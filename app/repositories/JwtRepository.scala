@@ -17,7 +17,6 @@ class JwtRepository @Inject() (
 
   private val blacklistedTokens = TableQuery[JwtTokenTable]
 
-  createTable()
   def createTable(): Future[Unit] = {
     db.run(blacklistedTokens.schema.createIfNotExists)
   }

@@ -244,29 +244,28 @@ class ImageController @Inject() (
     }
 
   def delete(id: Long): Action[AnyContent] = jwtAction.async { request =>
-    imageRepository.delete(request.userId, id).map {
+    imageRepository.delete(request.userId, id).flatMap {
       case Some(_) =>
         minioService.remove("images", id.toString) match {
           case Success(_) =>
-            commentRepository.deleteByImageId(id).map {
-              case None =>
-                NotFound(Json.toJson(id))
+            commentRepository.deleteByImageId(id).flatMap {
+              case None => Future.successful(NotFound(Json.toJson(id)))
               case Some(_) =>
+                minioService.remove("compressed-images", id.toString) match {
+                  case Success(_) =>
+                    commentRepository.deleteByImageId(id).map {
+                      case None =>
+                        NotFound(Json.toJson(id))
+                      case Some(_) =>
+                        Accepted(Json.toJson(id))
+                    }
+                  case Failure(_) =>
+                    Future.successful(NotFound(Json.toJson(id)))
+                }
             }
-          case Failure(_) => NotFound(Json.toJson(id))
+          case Failure(_) => Future.successful(NotFound(Json.toJson(id)))
         }
-
-        minioService.remove("compressed-images", id.toString) match {
-          case Success(_) =>
-            commentRepository.deleteByImageId(id).map {
-              case None =>
-                NotFound(Json.toJson(id))
-              case Some(_) =>
-            }
-          case Failure(_) => NotFound(Json.toJson(id))
-        }
-        Accepted(Json.toJson(id))
-      case None => NotFound(Json.toJson(id))
+      case None => Future.successful(NotFound(Json.toJson(id)))
     }
   }
 

@@ -16,7 +16,6 @@ class CommentRepository @Inject() (
 
   private val comments = TableQuery[CommentTable]
 
-  createTable()
   def createTable(): Future[Unit] = db.run(comments.schema.createIfNotExists)
 
   def create(comment: Comment): Future[Option[Comment]] =

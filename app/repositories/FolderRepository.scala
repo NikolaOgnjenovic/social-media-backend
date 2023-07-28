@@ -17,7 +17,6 @@ class FolderRepository @Inject() (
 
   private val folders = TableQuery[FolderTable]
 
-  createTable()
   def createTable(): Future[Unit] = db.run(folders.schema.createIfNotExists)
 
   def create(folder: Folder): Future[Option[Folder]] =

@@ -17,7 +17,6 @@ class UserRepository @Inject() (
 
   private val users = TableQuery[UserTable]
 
-  createTable()
   def createTable(): Future[Unit] = {
     db.run(users.schema.createIfNotExists)
   }
