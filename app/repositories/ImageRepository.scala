@@ -23,9 +23,7 @@ class ImageRepository @Inject() (
   def create(image: Image): Future[Option[Image]] =
     db.run((images returning images.map(_.id)) += image)
       .flatMap { generatedId =>
-        getById(
-          generatedId
-        ) // Fetch the inserted image using the generated ID
+        getById(generatedId)
       }
       .recoverWith { case _: PSQLException =>
         Future.successful(None)

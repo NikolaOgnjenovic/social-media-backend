@@ -16,26 +16,18 @@ libraryDependencies ++= Seq(
   "com.github.tminglei" %% "slick-pg" % "0.21.1", // Store lists in database
   // Swagger
   "org.webjars" % "swagger-ui" % "4.18.1",
-  // Test
-  "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test,
-  "com.typesafe.slick" %% "slick" % "3.4.1",
-  "com.typesafe.slick" %% "slick-hikaricp" % "3.4.1",
-  "com.github.tminglei" %% "slick-pg" % "0.21.1",
-  "com.github.tminglei" %% "slick-pg_play-json" % "0.21.1",
   // TODO: logback error that I solved by using this specific version?
   "ch.qos.logback" % "logback-classic" % "1.3.0",
   // Minio
   "io.minio" % "minio" % "8.3.7", // This old version uses jackson 11 which fits scala version 2.13?
   "commons-io" % "commons-io" % "20030203.000550",
+  // Image compression
   "com.sksamuel.scrimage" % "scrimage-core" % "4.0.33",
   // Auth
   "com.github.jwt-scala" %% "jwt-play-json" % "9.4.3",
+  // Password encryption
   "com.github.t3hnar" %% "scala-bcrypt" % "4.3.0",
-  filters,
-  // Elastic search
-  "com.sksamuel.elastic4s" %% "elastic4s-client-esjava" % "8.8.1",
-  // test kit
-  "com.sksamuel.elastic4s" %% "elastic4s-testkit" % "8.8.1" % "test"
+  filters
 )
 
 dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.11.4"

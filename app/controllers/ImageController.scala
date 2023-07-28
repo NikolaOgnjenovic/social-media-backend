@@ -24,6 +24,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import services.MinioService
 import models.Image
+import org.slf4j.LoggerFactory
 import play.api.Configuration
 
 import java.nio.file.Paths
@@ -36,6 +37,8 @@ class ImageController @Inject() (
     jwtAction: JwtAction
 )(implicit ec: ExecutionContext, config: Configuration)
     extends BaseController {
+  private val logger = LoggerFactory.getLogger(getClass)
+
   def create: Action[MultipartFormData[Files.TemporaryFile]] = {
     Action(parse.multipartFormData).async { request =>
       request.body
@@ -45,7 +48,6 @@ class ImageController @Inject() (
           val filename = Paths.get(picture.filename).getFileName
           val uploadDir = config.get[String]("imageUploadDirectory")
           val imagePath = s"$uploadDir/$filename"
-          //val imagePath = s"../public/images/$filename"
           picture.ref.copyTo(
             Paths.get(imagePath),
             replace = true
@@ -60,24 +62,31 @@ class ImageController @Inject() (
 
           imageRepository.create(imageToAdd).flatMap {
             case Some(createdImage) =>
-              println("Image path on first create: " + imagePath)
-              println(
+              logger.info("Image path on first create: " + imagePath)
+              logger.info(
                 "minio endpoint: " + config.get[String]("minio.endpoint")
               )
               // Upload the image to minio and delete the temporary file
               minioService
                 .upload("images", createdImage.id.toString, imagePath) match {
-                case Failure(ex) => Future.successful(Conflict(ex.getMessage))
-                case Success(_) => // Upload the compressed image to minio and delete the temporary file
+                case Failure(ex) =>
+                  logger.error("Failed first upload with: " + ex.getMessage)
+                  Future.successful(Conflict(ex.getMessage))
+                case Success(_) =>
+                  logger.info("Uploading compressed image...")
+                  // Upload the compressed image to minio and delete the temporary file
                   val compressedUploadDir =
                     config.get[String]("compressedImageUploadDirectory")
                   val compressedFilename = Paths.get(imagePath).getFileName
+                  logger
+                    .info("Compressed upload directory: " + compressedUploadDir)
+                  logger.info("Compressed filename: " + compressedFilename)
                   val compressedImagePath = compressImageFile(
                     Paths.get(imagePath).toFile,
                     s"$compressedUploadDir/$compressedFilename"
                   )
-                  println("Compressed image path: " + compressedImagePath)
-                  println(
+                  logger.info("Compressed image path: " + compressedImagePath)
+                  logger.info(
                     "minio endpoint: " + config.get[String]("minio.endpoint")
                   )
                   minioService.upload(
@@ -249,7 +258,8 @@ class ImageController @Inject() (
         minioService.remove("images", id.toString) match {
           case Success(_) =>
             commentRepository.deleteByImageId(id).flatMap {
-              case None => Future.successful(NotFound(Json.toJson(id)))
+              case None =>
+                Future.successful(NotFound(Json.toJson(id)))
               case Some(_) =>
                 minioService.remove("compressed-images", id.toString) match {
                   case Success(_) =>

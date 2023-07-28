@@ -20,9 +20,9 @@ class FolderRepository @Inject() (
   def createTable(): Future[Unit] = db.run(folders.schema.createIfNotExists)
 
   def create(folder: Folder): Future[Option[Folder]] =
-    db.run((folders returning folders) += folder)
-      .flatMap { _ =>
-        Future.successful(Some(folder))
+    db.run((folders returning folders.map(_.id)) += folder)
+      .flatMap { generatedId =>
+        getById(generatedId)
       }
       .recoverWith { case _: PSQLException =>
         Future.successful(None)

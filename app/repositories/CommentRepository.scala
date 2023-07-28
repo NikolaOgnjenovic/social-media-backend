@@ -19,8 +19,9 @@ class CommentRepository @Inject() (
   def createTable(): Future[Unit] = db.run(comments.schema.createIfNotExists)
 
   def create(comment: Comment): Future[Option[Comment]] =
-    db.run((comments returning comments) += comment)
-      .flatMap { _ =>
+    db.run((comments returning comments.map(_.id)) += comment)
+      .flatMap { generatedId =>
+        getById(generatedId)
         Future.successful(Some(comment))
       }
       .recoverWith { case _: PSQLException =>
@@ -94,7 +95,7 @@ class CommentRepository @Inject() (
   def deleteByImageId(imageId: Long): Future[Option[Boolean]] =
     db.run(comments.filter(_.imageId === imageId).delete)
       .flatMap {
-        case 0 => Future.successful(None)
+        case 0 => Future.successful(Some(true))
         case 1 => Future.successful(Some(true))
         case deletedRowCount =>
           Future.failed(
