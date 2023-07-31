@@ -20,9 +20,11 @@ class UserController @Inject() (
     jwtService: JwtService
 )(
     implicit ec: ExecutionContext,
-    implicit val conf: Configuration
+    implicit val conf: Configuration,
+    jwtAction: JwtAction
 ) extends BaseController {
   def create: Action[NewUser] = {
+    userRepository.createTable()
     Action.async(parse.json[NewUser]) { request =>
       val user: User = request.body
       userRepository.create(user).flatMap {
@@ -30,7 +32,9 @@ class UserController @Inject() (
           jwtService.generateToken(u.id).map { token =>
             val jsonResponse = Json.obj(
               "userId" -> u.id,
-              "token" -> token
+              "token" -> token,
+              "likedImageIds" -> u.likedImageIds,
+              "likedCommentIds" -> u.likedCommentIds
             )
             Created(jsonResponse)
           }
@@ -48,7 +52,9 @@ class UserController @Inject() (
           jwtService.generateToken(u.id).map { token =>
             val jsonResponse = Json.obj(
               "userId" -> u.id,
-              "token" -> token
+              "token" -> token,
+              "likedImageIds" -> u.likedImageIds,
+              "likedCommentIds" -> u.likedCommentIds
             )
             Ok(jsonResponse)
           }
@@ -61,7 +67,7 @@ class UserController @Inject() (
   def logout(): Action[String] = {
     Action.async(parse.json[String]) { request =>
       jwtService.blacklistToken(request.body).map {
-        case Some(_) => NoContent
+        case Some(_) => Ok
         case None    => Conflict
       }
     }
@@ -77,11 +83,25 @@ class UserController @Inject() (
     }
   }
 
-  def updatePassword(id: Long): Action[String] =
-    Action.async(parse.json[String]) { request =>
-      userRepository.updatePassword(id, request.body).map {
+  def updateLikedImageIds(): Action[List[Long]] =
+    jwtAction.async(parse.json[List[Long]]) { request =>
+      userRepository
+        .updateLikedImageIds(request.userId, request.body)
+        .map(likedImageIds => Ok(Json.toJson(likedImageIds)))
+    }
+
+  def updateLikedCommentIds(): Action[List[Long]] =
+    jwtAction.async(parse.json[List[Long]]) { request =>
+      userRepository
+        .updateLikedCommentIds(request.userId, request.body)
+        .map(likedCommentIds => Ok(Json.toJson(likedCommentIds)))
+    }
+
+  def updatePassword(): Action[String] =
+    jwtAction.async(parse.json[String]) { request =>
+      userRepository.updatePassword(request.userId, request.body).map {
         case Some(password) => Ok(Json.toJson(password))
-        case None           => NotFound(s"User with id: $id not found")
+        case None           => NotFound(s"User with id: ${request.userId} not found")
       }
     }
 

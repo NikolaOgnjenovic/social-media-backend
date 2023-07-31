@@ -81,6 +81,7 @@ class MinioService @Inject() (config: Config) {
   }
 
   def remove(bucketName: String, id: String): Try[Unit] = Try {
+    // Remove an object from the bucket with the given name
     minioClient.removeObject(
       RemoveObjectArgs.builder().bucket(bucketName).`object`(id).build()
     )

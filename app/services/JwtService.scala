@@ -17,8 +17,7 @@ class JwtService @Inject() (
 ) {
   implicit val clock: Clock = Clock.systemUTC
   private val encryptionKey = "mrmi"
-  private val algorithm =
-    JwtAlgorithm.HS256 //  TODO: when sending with an OK(), the key gets too long if it isn't hdm5. Solve this??
+  private val algorithm = JwtAlgorithm.HS256
 
   // TODO: When blacklisting a token new ones that get generated fail because they are blacklisted.
   //  I suppose that implies that tokens are indeed the same for each userId with the given encryption key and algorithm
@@ -29,10 +28,12 @@ class JwtService @Inject() (
     Future.successful(token)
   }
 
+  // Checks if the token is validly encrypted with the default encryption key and algortihm
   def isValid(token: String): Boolean = {
     JwtJson.isValid(token, encryptionKey, Seq(algorithm))
   }
 
+  // Reads the user id from the given JwtToken.
   def getUserIdFromToken(token: String): Option[Long] = {
     val tryClaims: Try[JwtClaim] =
       Jwt.decode(token, encryptionKey, Seq(algorithm))

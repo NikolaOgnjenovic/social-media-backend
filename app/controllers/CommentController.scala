@@ -17,6 +17,8 @@ class CommentController @Inject() (
     jwtAction: JwtAction
 )(implicit ec: ExecutionContext)
     extends BaseController {
+
+  // Returns a comment with the newly generated id
   def create: Action[NewComment] =
     Action.async(parse.json[NewComment]) { request =>
       val comment: Comment = request.body

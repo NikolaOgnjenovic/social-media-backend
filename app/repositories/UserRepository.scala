@@ -1,5 +1,6 @@
 package repositories
 
+import auth.JwtAction
 import models.User
 import org.postgresql.util.PSQLException
 import slick.jdbc.JdbcProfile
@@ -25,7 +26,9 @@ class UserRepository @Inject() (
     val newUser = new User(
       user.id,
       user.username,
-      BCrypt.hashpw(user.password, BCrypt.gensalt(5))
+      BCrypt.hashpw(user.password, BCrypt.gensalt(5)),
+      List(),
+      List()
     )
     db.run((users returning users) += newUser)
       .map(Some.apply[User])
@@ -48,6 +51,36 @@ class UserRepository @Inject() (
     // Filter all users and return the one with the given id
     db.run(users.filter(_.id === id).result).map(_.headOption)
   }
+
+  def updateLikedImageIds(
+      id: Long,
+      likedImageIds: List[Long]
+  ): Future[Option[List[Long]]] =
+    db.run(
+      users
+        .filter(user => user.id === id)
+        .map(_.likedImageIds)
+        .update(likedImageIds)
+    ).map {
+      case 0       => Some(likedImageIds)
+      case 1       => Some(likedImageIds)
+      case updated => throw new RuntimeException(s"Updated $updated rows")
+    }
+
+  def updateLikedCommentIds(
+      id: Long,
+      likedCommentIds: List[Long]
+  ): Future[Option[List[Long]]] =
+    db.run(
+      users
+        .filter(user => user.id === id)
+        .map(_.likedCommentIds)
+        .update(likedCommentIds)
+    ).map {
+      case 0       => Some(likedCommentIds)
+      case 1       => Some(likedCommentIds)
+      case updated => throw new RuntimeException(s"Updated $updated rows")
+    }
 
   def updatePassword(id: Long, password: String): Future[Option[String]] = {
     db.run(
@@ -73,12 +106,16 @@ class UserRepository @Inject() (
 
     def username = column[String]("username")
     def password = column[String]("password")
+    def likedImageIds = column[List[Long]]("liked_image_ids")
+    def likedCommentIds = column[List[Long]]("liked_comment_ids")
 
     // Maps table data to the case class
     override def * = (
       id,
       username,
-      password
+      password,
+      likedImageIds,
+      likedCommentIds
     ) <> ((User.apply _).tupled, User.unapply)
   }
 }

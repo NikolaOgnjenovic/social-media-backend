@@ -11,5 +11,5 @@ object NewUser {
   implicit val jsonReader: Reads[NewUser] = Json.reads[NewUser]
 
   implicit def toModel(newUser: NewUser): User =
-    User(0, newUser.username, newUser.password)
+    User(0, newUser.username, newUser.password, List(), List())
 }

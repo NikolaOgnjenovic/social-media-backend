@@ -18,11 +18,11 @@ class CommentRepository @Inject() (
 
   def createTable(): Future[Unit] = db.run(comments.schema.createIfNotExists)
 
+  // Adds the comment to the table and gets the comment by id in order to return the comment with the new id
   def create(comment: Comment): Future[Option[Comment]] =
     db.run((comments returning comments.map(_.id)) += comment)
       .flatMap { generatedId =>
         getById(generatedId)
-        Future.successful(Some(comment))
       }
       .recoverWith { case _: PSQLException =>
         Future.successful(None)

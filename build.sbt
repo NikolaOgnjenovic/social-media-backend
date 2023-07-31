@@ -1,8 +1,11 @@
+import com.typesafe.sbt.packager.docker.DockerVersion
+
 name := "image-website-backend"
 organization := "Mrmi"
 
 version := "1.0-SNAPSHOT"
-lazy val root = (project in file(".")).enablePlugins(PlayScala, SwaggerPlugin)
+lazy val root =
+  (project in file(".")).enablePlugins(PlayScala, SwaggerPlugin)
 
 scalaVersion := "2.13.11"
 swaggerDomainNameSpaces := Seq("models")
@@ -45,3 +48,6 @@ runLocal := {
 runDocker := {
   (Compile / run).toTask(s" -Dconfig.resource=application-docker.conf").value
 }
+
+dockerExposedPorts ++= Seq(9000, 9001)
+dockerVersion := Some(DockerVersion(18, 9, 0, Some("ce")))
