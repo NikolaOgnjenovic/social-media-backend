@@ -58,9 +58,8 @@ class ImageController @Inject() (
             request.body.dataParts.get("authorId").head.head.toLong,
             request.body.dataParts
               .get("tags")
-              .head
-              .toList
-              .head
+              .flatMap(_.headOption)
+              .getOrElse("")
               .stripPrefix("[")
               .stripSuffix("]")
               .split(",")

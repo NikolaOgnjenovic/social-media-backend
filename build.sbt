@@ -19,7 +19,6 @@ libraryDependencies ++= Seq(
   "com.github.tminglei" %% "slick-pg" % "0.21.1", // Store lists in database
   // Swagger
   "org.webjars" % "swagger-ui" % "4.18.1",
-  // TODO: logback error that I solved by using this specific version?
   "ch.qos.logback" % "logback-classic" % "1.3.0",
   // Minio
   "io.minio" % "minio" % "8.3.7", // This old version uses jackson 11 which fits scala version 2.13?
@@ -49,5 +48,5 @@ runDocker := {
   (Compile / run).toTask(s" -Dconfig.resource=application-docker.conf").value
 }
 
-dockerExposedPorts ++= Seq(9000, 9001)
+dockerExposedPorts ++= Seq(9000, 9001, 9002)
 dockerVersion := Some(DockerVersion(18, 9, 0, Some("ce")))
