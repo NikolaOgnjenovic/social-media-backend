@@ -23,6 +23,6 @@ object NewImage {
       List(
         newImage.authorId
       ),
-      -1 // folder id,
+      -1 // default folder id, handled on frontend
     )
 }

@@ -56,7 +56,16 @@ class ImageController @Inject() (
           // Add the image to the database
           val imageToAdd: Image = new NewImage(
             request.body.dataParts.get("authorId").head.head.toLong,
-            request.body.dataParts.get("tags").head.toList,
+            request.body.dataParts
+              .get("tags")
+              .head
+              .toList
+              .head
+              .stripPrefix("[")
+              .stripSuffix("]")
+              .split(",")
+              .map(_.trim.stripPrefix("\"").stripSuffix("\""))
+              .toList,
             request.body.dataParts.get("title").head.head
           )
 
